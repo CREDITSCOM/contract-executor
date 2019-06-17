@@ -6,6 +6,7 @@ import com.credits.general.pojo.ByteCodeObjectData;
 import java.util.Arrays;
 import java.util.List;
 
+@Deprecated
 public class GetSmartCodeResultData extends ApiResponseData {
     private static final long serialVersionUID = 4691482244448740354L;
 

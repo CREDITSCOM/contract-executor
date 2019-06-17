@@ -49,7 +49,7 @@ public class SendTransactionResultData extends ApiResponseData {
 
     @Override
     public String toString() {
-        return "GetSmartCodeResultData{" +
+        return "SendTransactionResultData{" +
                 "byteCodeObjects=" + byteCodeObjects +
                 ", contractState=" + Arrays.toString(contractState) +
                 '}';
