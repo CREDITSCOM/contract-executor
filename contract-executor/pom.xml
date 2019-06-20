@@ -4,14 +4,13 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.credits.executor</groupId>
     <artifactId>contract-executor</artifactId>
     <packaging>jar</packaging>
     <version>1.0</version>
 
     <parent>
-        <artifactId>external_node_applications</artifactId>
-        <groupId>com.credits</groupId>
+        <groupId>com.credits.executor</groupId>
+        <artifactId>contract-executor-root</artifactId>
         <version>1.0</version>
     </parent>
 
@@ -102,6 +101,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.7</version>
+        </dependency>
+        <dependency>
             <groupId>com.credits.client</groupId>
             <artifactId>node_client</artifactId>
             <version>1.0</version>
@@ -114,29 +118,55 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.credits.general-structures</groupId>
-            <artifactId>general-structures</artifactId>
-            <version>1.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.credits.sc-api</groupId>
-            <artifactId>sc-api</artifactId>
-            <version>1.1</version>
-            <scope>compile</scope>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
         </dependency>
 
-        <!-- dagger -->
         <dependency>
             <groupId>com.google.dagger</groupId>
             <artifactId>dagger</artifactId>
             <version>2.22.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.8.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.credits.sc-api</groupId>
+            <artifactId>sc-api-internal</artifactId>
+            <version>1.2-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.5.0-M1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.19.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.credits.sc-api</groupId>
+            <artifactId>sc-api-support</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

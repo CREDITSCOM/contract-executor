@@ -45,8 +45,8 @@ public class MySmartContract extends SmartContract {
     }
 
     public boolean payable(String amount, String currency) throws Exception {
-        NumberFormat nf = NumberFormat.getInstance(java.util.Locale.ENGLISH);
-        BigDecimal val = new BigDecimal(nf.parse(amount).doubleValue());
+//        NumberFormat nf = NumberFormat.getInstance(java.util.Locale.ENGLISH);
+        BigDecimal val = new BigDecimal(amount);
         sendTransaction(initiator, contractAddress, val.doubleValue(), 1.0);
         return true;
     }

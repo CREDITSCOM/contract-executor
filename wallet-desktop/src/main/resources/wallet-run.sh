@@ -1,1 +1,0 @@
-java -jar wallet-desktop-${project.version}-${buildNumber}.jar
