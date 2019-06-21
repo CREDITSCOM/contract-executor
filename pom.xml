@@ -20,7 +20,6 @@
         <skipTests>false</skipTests>
         <skipIntegrationTests>true</skipIntegrationTests>
         <javaVersion>11</javaVersion>
-        <buildNumber>0</buildNumber>
     </properties>
 
     <dependencies>

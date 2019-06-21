@@ -21,6 +21,13 @@
         <skipIntegrationTests>true</skipIntegrationTests>
     </properties>
 
+    <scm>
+        <connection>scm:git:https://none.git</connection>
+        <developerConnection>scm:git:https://none.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>scm:git:https://none.git</url>
+    </scm>
+
     <build>
         <defaultGoal>package</defaultGoal>
         <plugins>
@@ -94,6 +101,30 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <revisionOnScmFailure>1</revisionOnScmFailure>
+                    <doCheck>true</doCheck>
+                    <buildNumberPropertyName>buildNumber</buildNumberPropertyName>
+                    <doUpdate>true</doUpdate>
+                    <format>{0,number}</format>
+                    <items>
+                        <item>buildNumber</item>
+                    </items>
+                </configuration>
             </plugin>
         </plugins>
     </build>
