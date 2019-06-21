@@ -8,40 +8,37 @@
 [![AGPL License](https://img.shields.io/github/license/CREDITSCOM/ewa.svg?color=green&style=plastic)](contract-executor/LICENSE)
 [![Build Status](http://161.156.96.18:8080/buildStatus/icon?job=ewa_build&lastBuild)](http://161.156.96.18:8080/job/ewa_build/lastBuild/)
 
-## EWA
-###### Contract Executor and Wallet Applications
-This repository contains following main modules:
-
-- Contract Executor
-
-- [Wallet Desktop](https://github.com/CREDITSCOM/ewa/tree/master/wallet-desktop)
-
-- sc-api
-
-- api-client
-
-##### What is Contract Executor?
+## Contract Executor
 Contract Executor is app for deploy and execute methods of smart-contract
-##### What is Wallet Desktop? 
-It is desktop version of credits wallet
-##### What is SC-API?
-It is API module contains necessary classes for smart-contact deployment
-##### What is API-Client?
-API contains general tools for integrate with node 
 
 
 ##### Used environment
 - [JDK 11](https://openjdk.java.net/projects/jdk/11/)
-- [OpenJFX version 11](https://openjfx.io/)
 - [Maven version 3.6.1](https://maven.apache.org/docs/3.6.1/release-notes.html) 
 
 ##### How to build
-For build all modules use following maven command on root project level
+For build  use following command on root project level
 ```shell
 mvn clean install
 ```
-For run wallet you have to install openjfx sdk and then you need specify path to lib folder of openjfx. 
-Use following command as example
-```shell
-java --module-path %your_module_path_here% --add-modules=javafx.controls,javafx.fxml,javafx.graphics -jar wallet-desktop.jar`
-```
+<h3>Resources</h3>
+
+<a href="https://credits.com//">CREDITS Website</a>
+
+<a href="https://github.com/CREDITSCOM/DOCUMENTATION">Documentation</a>
+
+<a href="https://credits.com/Content/Docs/TechnicalWhitePaperCREDITSEng.pdf">Whitepaper</a>
+
+<a href="https://credits.com/Content/Docs/TechnicalPaperENG.pdf">Technical paper</a>
+
+<a href="https://developers.credits.com/">Developers portal</a>
+
+<a href="http://forum.credits.com/">Credits forum</a>
+<h3>Community links</h3>
+   <a href="https://t.me/creditscom"><img src ="https://simpleicons.org/icons/telegram.svg" height=40 widht=40 ></a>
+   <a href="https://twitter.com/creditscom"><img src ="https://simpleicons.org/icons/twitter.svg" height=40 widht=40 ></a>
+   <a href="https://www.reddit.com/r/CreditsOfficial/"><img src ="https://simpleicons.org/icons/reddit.svg" height=40 widht=40></a> 
+   <a href="https://medium.com/@credits"><img src="https://simpleicons.org/icons/medium.svg" height=40 widht=40></a>
+   <a href="https://www.instagram.com/credits_com/"><img src="https://simpleicons.org/icons/facebook.svg" height=40 widht=40></a>
+   <a href="https://www.facebook.com/creditscom"><img src="https://simpleicons.org/icons/instagram.svg" height=40 widht=40></a>
+   <a href="https://www.youtube.com/channel/UC7kjX_jgauCqmf_a4fqLGOQ"><img src="https://simpleicons.org/icons/youtube.svg" height=40 widht=40></a>
