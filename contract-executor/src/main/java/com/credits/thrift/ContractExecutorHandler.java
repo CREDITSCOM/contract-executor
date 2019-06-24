@@ -204,14 +204,9 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
             logger.debug("<-- compileBytecode(\nsourceCode = {},\nversion = {})", sourceCode, version);
             validateVersion(version);
             result = new CompileSourceCodeResult(SUCCESS_API_RESPONSE, byteCodeObjectsDataToByteCodeObjects(ceService.compileClass(sourceCode)));
-        } catch (CompilationException exception) {
+        } catch (CompilationException e) {
             result = new CompileSourceCodeResult();
-            result.setStatus(new APIResponse(
-                    FAILURE.code,
-                    exception.getErrors()
-                            .stream()
-                            .map(e -> "Error on line " + e.getLineNumber() + ": " + e.getErrorMessage())
-                            .collect(Collectors.joining("\n"))));
+            result.setStatus(failureApiResponse(e));
         } catch (Throwable e) {
             result = new CompileSourceCodeResult(failureApiResponse(e), emptyList());
         }
