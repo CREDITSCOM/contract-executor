@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import pojo.ReturnValue;
+import pojo.SmartContractMethodResult;
 import tests.credits.service.ServiceTest;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
+import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
 import static com.credits.general.thrift.generated.Variant._Fields.V_INT;
 import static com.credits.general.thrift.generated.Variant._Fields.V_VOID;
 import static com.credits.general.thrift.generated.Variant.v_int;
@@ -207,6 +209,18 @@ public class ContractExecutorTest extends ServiceTest {
 
         assertThat(result.status.code, is(FAILURE.code));
         assertThat(result.status.message, containsString("some problem found here"));
+    }
+
+    @Test
+    @DisplayName("")
+    public void executePayableSmartContractV2() throws IOException {
+        super.selectSourcecode("/serviceTest/SmartContractV2.java");
+
+        var contractState = deploySmartContract().newContractState;
+        SmartContractMethodResult result = executeSmartContract(contractState, "payable", BigDecimal.ONE, new byte[0]).executeResults.get(0);
+
+        assertThat(result.status.code, is(SUCCESS.code));
+        assertThat(result.result.getV_string(), is("payable call successfully"));
     }
 }
 

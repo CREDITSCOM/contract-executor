@@ -8,7 +8,6 @@ import com.credits.general.util.GeneralConverter;
 import com.credits.general.util.compiler.InMemoryCompiler;
 import com.credits.general.util.compiler.model.CompilationPackage;
 import com.credits.general.util.sourceCode.GeneralSourceCodeUtils;
-import com.credits.general.util.variant.VariantConverter;
 import com.credits.scapi.v0.SmartContract;
 import exception.ContractExecutorException;
 import org.apache.commons.io.FileUtils;
@@ -31,6 +30,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +40,7 @@ import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
 import static com.credits.general.util.GeneralConverter.decodeFromBASE58;
 import static com.credits.general.util.GeneralConverter.encodeToBASE58;
 import static com.credits.general.util.Utils.getClassType;
+import static com.credits.general.util.variant.VariantConverter.toVariant;
 import static java.io.File.separator;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -143,7 +144,7 @@ public abstract class ServiceTest {
             variantParams = new Variant[1][params.length];
             for (int i = 0; i < variantParams[0].length; i++) {
                 final Object param = params[i];
-                variantParams[0][i] = VariantConverter.toVariant(getClassType(param), param);
+                variantParams[0][i] = toVariant(getClassType(param), param);
             }
         }
         Map<String, ExternalSmartContract> usedContracts = new HashMap<>();
@@ -168,12 +169,15 @@ public abstract class ServiceTest {
     protected ReturnValue executeSmartContract(String methodName, Variant[][] params, byte[] contractState) {
         return executeSmartContract(methodName, params, contractState, Long.MAX_VALUE);
     }
+    protected ReturnValue executeSmartContract(byte[] contractState, String methodName, Object... params) {
+        return executeSmartContract(methodName, variantParamsOf(params), contractState, Long.MAX_VALUE);
+    }
 
     protected ReturnValue executeSmartContract(String methodName,  byte[] contractState, long executionTime) {
         return executeSmartContract(methodName, new Variant[][]{{}}, contractState, executionTime);
     }
 
-    protected ReturnValue executeSmartContract(
+    private ReturnValue executeSmartContract(
             String methodName,
             Variant[][] params,
             byte[] contractState,
@@ -192,6 +196,10 @@ public abstract class ServiceTest {
                         byteCodeObjectDataList,
                         contractState,
                         isCanModify));
+    }
+
+    private Variant[][] variantParamsOf(Object... params){
+        return new Variant[][]{Arrays.stream(params).map(p -> toVariant(getClassType(p), p)).collect(Collectors.toList()).toArray(Variant[]::new)};
     }
 
     private InvokeMethodSession createMethodSession(String methodName, byte[] contractState, long maxValue, Variant[][] variantParams) {
