@@ -38,7 +38,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     private byte[] deployContractState;
 
-    public ContractExecutorTest() {
+    ContractExecutorTest() {
         super("/serviceTest/MySmartContract.java");
     }
 
@@ -49,21 +49,21 @@ public class ContractExecutorTest extends ServiceTest {
     }
 
     @Test
-    public void returnVoidType() {
+    void returnVoidType() {
         ReturnValue returnValue = executeSmartContract("initialize", deployContractState);
         assertThat(returnValue.executeResults.get(0).result, is(new Variant(V_VOID, VOID_TYPE_VALUE)));
     }
 
     @Test
     @DisplayName("getter method cannot change contract state")
-    public void getterMethodCanNotChangeContractState() {
+    void getterMethodCanNotChangeContractState() {
         ReturnValue rv = executeSmartContract("getTotal", deployContractState);
         assertThat(deployContractState, equalTo(rv.newContractState));
     }
 
     @Test
     @DisplayName("setter method should be change contract state")
-    public void saveStateSmartContract() {
+    void saveStateSmartContract() {
         var executionResult = executeSmartContract("getTotal", deployContractState);
         var total = executionResult.executeResults.get(0).result.getV_int();
         var contractState = executionResult.newContractState;
@@ -80,14 +80,14 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("initiator must be initialized")
-    public void initiatorInit() {
+    void initiatorInit() {
         String initiator = executeSmartContract("getInitiatorAddress", deployContractState).executeResults.get(0).result.getV_string();
         assertThat(initiator, is(Base58.encode(initiatorAddress)));
     }
 
     @Test
     @DisplayName("sendTransaction into smartContract must be call NodeApiExecService")
-    public void sendTransactionIntoContract() {
+    void sendTransactionIntoContract() {
         ReturnValue result = executeSmartContract("payable", new Variant[][]{{v_string("10"), v_string("CS")}}, deployContractState);
 
         verify(mockNodeApiExecService).sendTransaction(accessId, initiatorAddressBase58, contractAddressBase58, 10, 1.0, new byte[]{});
@@ -96,7 +96,7 @@ public class ContractExecutorTest extends ServiceTest {
     }
 
     @Test
-    public void getContractVariablesTest() {
+    void getContractVariablesTest() {
         Map<String, Variant> contractVariables = ceService.getContractVariables(byteCodeObjectDataList, deployContractState);
         assertThat(contractVariables, IsMapContaining.hasEntry("total", new Variant(V_INT, 0)));
     }
@@ -104,7 +104,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("returned value can be BigDecimal type")
-    public void getBalanceReturnBigDecimal() {
+    void getBalanceReturnBigDecimal() {
         when(mockNodeApiExecService.getBalance(anyString())).thenReturn(new BigDecimal("19.5"));
 
         var variantBalance = executeSmartContract("getBalanceTest",
@@ -117,7 +117,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("multiple call change contract state")
-    public void multipleMethodCall() {
+    void multipleMethodCall() {
         ReturnValue multiplyCallResult = executeSmartContract(
                 "addTokens",
                 new Variant[][]{
@@ -135,7 +135,7 @@ public class ContractExecutorTest extends ServiceTest {
 
 
     @Test
-    public void compileClassCall() throws CompilationException {
+    void compileClassCall() throws CompilationException {
         final List<ByteCodeObjectData> byteCodeObjectData = ceService.compileClass(sourceCode);
 
         assertThat(byteCodeObjectData, notNullValue());
@@ -145,7 +145,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("call NodeApiExecService and returning result")
-    public void getSeedCallIntoSmartContract() {
+    void getSeedCallIntoSmartContract() {
         var seed = new byte[]{0xB, 0xA, 0xB, 0xE};
 
         when(mockNodeApiExecService.getSeed(anyLong())).thenReturn(seed);
@@ -156,7 +156,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("execution of smart-contract must be stop when execution time expired")
-    public void executionTimeTest() {
+    void executionTimeTest() {
         var executionStatus = executeSmartContract("infiniteLoop", deployContractState, 10).executeResults.get(0).status;
 
         assertThat(executionStatus.code, is(FAILURE.code));
@@ -165,7 +165,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("correct interrupt smart contract if time expired")
-    public void correctInterruptContractIfTimeExpired() {
+    void correctInterruptContractIfTimeExpired() {
         var executionResult = executeSmartContract("interruptedInfiniteLoop", deployContractState, 10).executeResults.get(0);
 
         assertThat(executionResult.status, is(SUCCESS_API_RESPONSE));
@@ -174,7 +174,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("wait a bit delay for correct complete smart contract method")
-    public void waitCorrectCompleteOfSmartContract() {
+    void waitCorrectCompleteOfSmartContract() {
         var executionResult = executeSmartContract("interruptInfiniteLoopWithDelay", deployContractState, 10).executeResults.get(0);
 
         assertThat(executionResult.status, is(SUCCESS_API_RESPONSE));
@@ -183,7 +183,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("executeByteCode must be return spent cpu time by execution method thread")
-    public void executeByteCodeMeasureCpuTimeByThread0() {
+    void executeByteCodeMeasureCpuTimeByThread0() {
         var spentCpuTime = executeSmartContract("nothingWorkOnlySleep", deployContractState, 11).executeResults.get(0).spentCpuTime;
         assertThat(spentCpuTime, lessThan(1000_000L));
 
@@ -193,7 +193,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("exception into executeByteCode must be return fail status with exception message")
-    public void exceptionDuringExecution() {
+    void exceptionDuringExecution() {
         var result = executeSmartContract("thisMethodThrowsExcetion", deployContractState, 1).executeResults.get(0);
 
         assertThat(result.status.code, is(FAILURE.code));
@@ -202,7 +202,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("exception into constructor must be return fail status with exception method")
-    public void constructorWithException() throws IOException {
+    void constructorWithException() throws IOException {
         super.selectSourcecode("/serviceTest/TroubleConstructor.java");
 
         var result = deploySmartContract().executeResults.get(0);
@@ -213,7 +213,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     @DisplayName("")
-    public void executePayableSmartContractV2() throws IOException {
+    void executePayableSmartContractV2() throws IOException {
         super.selectSourcecode("/serviceTest/SmartContractV2.java");
 
         var contractState = deploySmartContract().newContractState;
