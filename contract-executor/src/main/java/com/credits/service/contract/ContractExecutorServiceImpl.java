@@ -152,7 +152,8 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     private Class<?> compileClassAndDropPermissions(List<ByteCodeObjectData> byteCodeObjectList, ByteCodeContractClassLoader classLoader)
     throws ContractExecutorException {
         return compileSmartContractByteCode(byteCodeObjectList, classLoader).stream()
-                .peek(permissionManager::dropSmartContractRights)
+                .peek(permissionManager::dropSmartContractRights).collect(toList())
+                .stream()
                 .filter(clazz -> !clazz.getName().contains("$"))
                 .findAny()
                 .orElseThrow(() -> new CompilationException("contract class not compiled"));
