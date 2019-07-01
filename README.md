@@ -56,7 +56,7 @@ Detailed steps are:
 ``` mvn -version```
 
     
-<img src=".github/readme-images/4.PNG" align="center">
+<img src=".github/readme-images/console.jpg" align="center">
 
 
 
