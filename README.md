@@ -48,7 +48,7 @@ Detailed steps are:
 
     
 
-<img src=".github/readme-images/3.png" align="center">
+<img src=".github/readme-images/ScreenMavenBin2.jpg" align="center">
 
 
 
