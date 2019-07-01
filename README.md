@@ -33,7 +33,7 @@ Detailed steps are:
 
     
 
-<img src=".github/readme-images/1.PNG" align="center">
+<img src=".github/readme-images/ScreenJava1.jpg" align="center">
 
 
 2. Download and install Maven and set the ‘M2_HOME’ and ‘MAVEN_HOME’ variables to maven installation folder. You can download Maven [here](https://maven.apache.org/download.cgi).
