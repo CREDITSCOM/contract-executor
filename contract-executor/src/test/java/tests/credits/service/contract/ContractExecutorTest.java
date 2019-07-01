@@ -29,6 +29,7 @@ import static com.credits.general.util.variant.VariantConverter.toObject;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -136,7 +137,7 @@ public class ContractExecutorTest extends ServiceTest {
 
     @Test
     void compileClassCall() throws CompilationException {
-        final List<ByteCodeObjectData> byteCodeObjectData = ceService.compileClass(sourceCode);
+        final List<ByteCodeObjectData> byteCodeObjectData = ceService.compileContractClass(sourceCode);
 
         assertThat(byteCodeObjectData, notNullValue());
         assertThat(byteCodeObjectData, not(empty()));
@@ -212,7 +213,7 @@ public class ContractExecutorTest extends ServiceTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("v2.SmartContract must be compiled and executable")
     void executePayableSmartContractV2() throws IOException {
         super.selectSourcecode("/serviceTest/SmartContractV2.java");
 
@@ -221,6 +222,32 @@ public class ContractExecutorTest extends ServiceTest {
 
         assertThat(result.status.code, is(SUCCESS.code));
         assertThat(result.result.getV_string(), is("payable call successfully"));
+    }
+
+    @Test
+    @DisplayName("compileContractClass must be return byteCodes list of root and internal classes")
+    void compileContractTest() {
+        final var result = ceService.compileContractClass(sourceCode);
+
+        assertThat(result.size(), greaterThan(0));
+        assertThat(result.get(0).getName(), is("MySmartContract$Geo"));
+        assertThat(result.get(1).getName(), is("MySmartContract"));
+    }
+
+    @Test
+    @DisplayName("compileContractClass must be throw compilation exception with explanations")
+    void compileContractTest1(){
+        assertThrows(CompilationException.class, () -> ceService.compileContractClass("class MyContract {\n MyContract()\n}"));
+    }
+
+    @Test
+    @DisplayName("buildContractClass must be return list of classes")
+    void buildContractClass(){
+        final var result = ceService.buildContractClass(byteCodeObjectDataList);
+
+        assertThat(result.size(), greaterThan(0));
+        assertThat(result.get(0).getName(), is("MySmartContract$Geo"));
+        assertThat(result.get(1).getName(), is("MySmartContract"));
     }
 }
 

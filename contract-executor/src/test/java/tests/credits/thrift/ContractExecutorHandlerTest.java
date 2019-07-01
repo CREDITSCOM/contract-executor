@@ -1,35 +1,39 @@
 package tests.credits.thrift;
 
 import com.credits.client.executor.thrift.generated.*;
+import com.credits.general.pojo.ApiResponseData;
+import com.credits.general.pojo.MethodDescriptionData;
 import com.credits.general.thrift.generated.APIResponse;
 import com.credits.general.thrift.generated.ByteCodeObject;
 import com.credits.general.thrift.generated.ClassObject;
 import com.credits.general.thrift.generated.Variant;
-import com.credits.general.util.compiler.CompilationException;
-import com.credits.general.util.compiler.model.CompilationUnit;
+import com.credits.scapi.v0.BasicStandard;
+import com.credits.scapi.v1.ExtensionTokenStandard;
+import com.credits.scapi.v2.SmartContract;
 import com.credits.thrift.ContractExecutorHandler;
 import exception.ContractExecutorException;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import pojo.ExternalSmartContract;
 import pojo.ReturnValue;
 import pojo.SmartContractMethodResult;
+import pojo.apiexec.SmartContractGetResultData;
 import pojo.session.InvokeMethodSession;
 import service.executor.ContractExecutorService;
+import tests.credits.SmartContactTestData;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import static com.credits.ApplicationProperties.APP_VERSION;
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
+import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
 import static com.credits.general.thrift.generated.Variant._Fields.*;
-import static com.credits.general.util.GeneralConverter.decodeFromBASE58;
-import static com.credits.general.util.compiler.InMemoryCompiler.compileSourceCode;
 import static com.credits.general.util.variant.VariantConverter.VOID_TYPE_VALUE;
+import static com.credits.thrift.TokenStandardId.*;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
 import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
 import static java.nio.ByteBuffer.allocate;
@@ -43,38 +47,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static tests.credits.TestUtils.readSourceCode;
+import static tests.credits.TestUtils.*;
 
 public class ContractExecutorHandlerTest {
 
-    private static List<ByteCodeObject> byteCodeObjects;
-    private static ByteBuffer initiatorAddress;
-    private static ByteBuffer contractAddress;
     private final Variant voidVariantResult = new Variant(V_VOID, VOID_TYPE_VALUE);
 
+    @Inject
+    List<SmartContactTestData> contracts;
     @Inject
     ContractExecutorService mockCEService;
     @Inject
     ContractExecutorHandler contractExecutorHandler;
-    private byte[] contractState = new byte[]{0xC, 0xA, 0xF, 0xE};
-    private Variant getTokensVariantResult;
-    private static String contractSourcecode;
-
-    @BeforeAll
-    public static void init() throws IOException, CompilationException {
-        contractSourcecode = readSourceCode("com/credits/service/usercode/contractExecutorHandlerTest/MySmartContract.java");
-
-        List<CompilationUnit> compilationUnits = compileSourceCode(contractSourcecode).getUnits();
-        byteCodeObjects = compilationUnits.stream()
-                .map(cu -> new ByteCodeObject(cu.getName(), wrap(cu.getByteCode())))
-                .collect(Collectors.toList());
-
-        initiatorAddress = wrap(decodeFromBASE58("5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpe"));
-        contractAddress = wrap(decodeFromBASE58("5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpd"));
-    }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         DaggerCEHandlerTestComponent.builder().build().inject(this);
         when(mockCEService.deploySmartContract(any())).thenReturn(
                 new ReturnValue(new byte[]{0xC, 0xA, 0xF, 0xE},
@@ -84,26 +71,27 @@ public class ContractExecutorHandlerTest {
 
     @Test
     @DisplayName("MethodHeaders can be null when deploy")
-    public void executeByteCodeTest0() {
+    void executeByteCodeTest0() {
         var deployResult = executeSmartContract(allocate(0), null);
         verify(mockCEService).deploySmartContract(any());
         assertThat(deployResult.status, is(SUCCESS_API_RESPONSE));
-        assertThat(deployResult.results.get(0).getInvokedContractState().length > 0, is(true));
+        assertThat(getInvokedContractState(deployResult).length > 0, is(true));
     }
+
 
     @Test
     @DisplayName("MethodHeaders can be empty when deploy")
-    public void executeByteCodeTest1() {
+    void executeByteCodeTest1() {
         var deployResult = executeSmartContract(allocate(0), emptyList());
         verify(mockCEService).deploySmartContract(any());
 
         assertEquals(SUCCESS_API_RESPONSE, deployResult.status);
-        assertTrue(deployResult.results.get(0).getInvokedContractState().length > 0);
+        assertTrue(getInvokedContractState(deployResult).length > 0);
     }
 
     @Test
     @DisplayName("MethodHeaders can't be null when execute")
-    public void executeByteCodeTest2() {
+    void executeByteCodeTest2() {
         var contractState = deploySmartContract();
         var executeByteCodeResult = executeSmartContract(contractState, null);
         verify(mockCEService, never()).executeSmartContract(any());
@@ -116,7 +104,7 @@ public class ContractExecutorHandlerTest {
 
     @Test
     @DisplayName("MethodHeaders can't be empty when execute")
-    public void executeByteCodeTest3() {
+    void executeByteCodeTest3() {
         var contractState = deploySmartContract();
         var executeByteCodeResult = executeSmartContract(contractState, emptyList());
         verify(mockCEService, never()).executeSmartContract(any());
@@ -128,10 +116,10 @@ public class ContractExecutorHandlerTest {
 
     @Test
     @DisplayName("Amount ExecuteByteCodeResult must be equals amount methodHeaders")
-    public void executeByteCodeTest5() {
+    void executeByteCodeTest5() {
         var contractState = deploySmartContract();
 
-        getTokensVariantResult = new Variant(V_INT, 5);
+        Variant getTokensVariantResult = new Variant(V_INT, 5);
 
         doAnswer(invocationOnMock -> {
             var methodName = ((InvokeMethodSession) invocationOnMock.getArgument(0)).methodName;
@@ -169,16 +157,23 @@ public class ContractExecutorHandlerTest {
         assertThat(results.get(3).ret_val, is(getTokensVariantResult));
     }
 
+    private ReturnValue createSuccessResponse(Variant result) {
+        return new ReturnValue(
+                any(),
+                List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, result, 10)),
+                emptyMap());
+    }
+
     @Test
     @DisplayName("Throw exception if version is not valid")
     @SuppressWarnings("unchecked")
-    public void checkAppVersionTest() {
+    void checkAppVersionTest() {
         short invalidVersion = (short) (APP_VERSION - 1);
         var contractState = deploySmartContract();
 
         assertVersionIsInvalid(executeSmartContract(contractState, List.of(new MethodHeader("getTokens", emptyList())), invalidVersion).getStatus());
         assertVersionIsInvalid(executeByteCodeMultiple(contractState, "getTokens", invalidVersion, emptyList()).getStatus());
-        assertVersionIsInvalid(contractExecutorHandler.compileSourceCode(contractSourcecode, invalidVersion).getStatus());
+        assertVersionIsInvalid(contractExecutorHandler.compileSourceCode(contracts.get(0).getSourceCode(), invalidVersion).getStatus());
         assertVersionIsInvalid(contractExecutorHandler.getContractMethods(List.of(mock(ByteCodeObject.class)), invalidVersion).getStatus());
         assertVersionIsInvalid(contractExecutorHandler.getContractVariables(List.of(mock(ByteCodeObject.class)),
                                                                             contractState,
@@ -187,7 +182,7 @@ public class ContractExecutorHandlerTest {
 
     @Test
     @DisplayName("results with exceptions must be returned with failure status")
-    public void executeByteCodeThrowException() {
+    void executeByteCodeThrowException() {
         var contractState = deploySmartContract();
 
         when(mockCEService.executeSmartContract(any())).thenReturn(
@@ -203,16 +198,60 @@ public class ContractExecutorHandlerTest {
         assertThat(result.getResults().get(0).status.message, containsString("oops some problem"));
     }
 
+    @Test
+    @DisplayName("getContactMethods must be return methods descriptions and token version id")
+    void getContactMethodsTest() {
+        final var basicStandardContract = contracts.get(0);
+        final var extensionStandardContract = contracts.get(1);
+
+        final var methodDescriptionData = List.of(new MethodDescriptionData("void", "foo", emptyList(), emptyList()));
+        when(mockCEService.getContractMethods(anyList())).thenReturn(methodDescriptionData);
+
+        when(mockCEService.buildContractClass(basicStandardContract.getByteCodeObjectDataList())).thenReturn(List.of(BasicStandard.class));
+        var result = contractExecutorHandler.getContractMethods(basicStandardContract.getByteCodeObjectList(), APP_VERSION);
+        assertThat(result.getMethods().size(), is(1));
+        assertThat(result.getTokenStandard(), is(BASIC_STANDARD.getId()));
+
+        when(mockCEService.buildContractClass(extensionStandardContract.getByteCodeObjectDataList())).thenReturn(List.of(ExtensionTokenStandard.class));
+        result = contractExecutorHandler.getContractMethods(extensionStandardContract.getByteCodeObjectList(), APP_VERSION);
+        assertThat(result.getMethods().size(), is(1));
+        assertThat(result.getTokenStandard(), is(EXTENSION_TOKEN_STANDARD.getId()));
+
+        when(mockCEService.buildContractClass(anyList())).thenReturn(List.of(SmartContract.class));
+        result = contractExecutorHandler.getContractMethods(contracts.get(1).getByteCodeObjectList(), APP_VERSION);
+        assertThat(result.getMethods().size(), is(1));
+        assertThat(result.getTokenStandard(), is(NOT_A_TOKEN.getId()));
+    }
+
+    @Test
+    @DisplayName("execute bytecode method must be return new state into contractStates map")
+    void executeByteCodeReturnContractState() {
+        var contractData = contracts.get(0);
+        var contractState = new byte[]{0xC, 0xA, 0xF, 0xE};
+        var returnContractState = new byte[]{0xB, 0xA, 0xB, 0xE};
+        when(mockCEService.executeSmartContract(any()))
+                .thenReturn(new ReturnValue(contractState,
+                                            List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, any(), anyLong())),
+                                            Map.of(contractData.getContractAddressBase58(),
+                                                   new ExternalSmartContract( new SmartContractGetResultData(new ApiResponseData(SUCCESS, "success"),
+                                                                                                            contractData.getByteCodeObjectDataList(),
+                                                                                                            returnContractState,
+                                                                                                            true)))));
+
+
+        var result = executeSmartContract(wrap(contractState),
+                                          List.of(methodHeaderOf("addTokens", 10),
+                                                  methodHeaderOf("getTokens")));
+
+        assertThat(result.getStatus().code, is(SUCCESS.code));
+        assertThat(result.getResults().size(), is(2));
+        assertThat(result.getResults().get(0).contractsState.get(contractAddress).array(), is(returnContractState));
+        assertThat(result.getResults().get(1).contractsState.get(contractAddress).array(), is(returnContractState));
+    }
+
     private void assertVersionIsInvalid(APIResponse status) {
         assertThat(status.code, is(FAILURE.code));
         assertThat(status.getMessage(), containsString("IllegalArgumentException: Invalid version"));
-    }
-
-    private ReturnValue createSuccessResponse(Variant result) {
-        return new ReturnValue(
-                contractState,
-                List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, result, 10)),
-                emptyMap());
     }
 
     private ExecuteByteCodeResult executeSmartContract(ByteBuffer contractState, List<MethodHeader> methodHeaders) {
@@ -226,7 +265,8 @@ public class ContractExecutorHandlerTest {
         return contractExecutorHandler.executeByteCodeMultiple(1,
                                                                initiatorAddress,
                                                                new SmartContractBinary(contractAddress,
-                                                                                       new ClassObject(byteCodeObjects, contractState),
+                                                                                       new ClassObject(contracts.get(0).getByteCodeObjectList(),
+                                                                                                       contractState),
                                                                                        false),
                                                                methodName,
                                                                List.of(params),
@@ -235,12 +275,14 @@ public class ContractExecutorHandlerTest {
     }
 
     private ExecuteByteCodeResult executeSmartContract(ByteBuffer contractState, List<MethodHeader> methodHeaders, int version) {
-        SmartContractBinary smartContractBinary = new SmartContractBinary(contractAddress, new ClassObject(byteCodeObjects, contractState), true);
+        SmartContractBinary smartContractBinary = new SmartContractBinary(contractAddress,
+                                                                          new ClassObject(contracts.get(0).getByteCodeObjectList(), contractState),
+                                                                          true);
         return contractExecutorHandler.executeByteCode(1, initiatorAddress, smartContractBinary, methodHeaders, 500, (short) version);
     }
 
 
     private ByteBuffer deploySmartContract() {
-        return wrap(executeSmartContract(allocate(0), emptyList()).getResults().get(0).getInvokedContractState());
+        return executeSmartContract(allocate(0), emptyList()).getResults().get(0).getContractsState().get(contractAddress);
     }
 }

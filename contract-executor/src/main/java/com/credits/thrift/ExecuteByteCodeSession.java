@@ -13,19 +13,22 @@ import pojo.session.InvokeMethodSession;
 import service.executor.ContractExecutorService;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.credits.general.thrift.generated.Variant._Fields.V_STRING;
 import static com.credits.general.util.GeneralConverter.*;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
 import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
+import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 
 public class ExecuteByteCodeSession {
     private final static Logger logger = LoggerFactory.getLogger(ExecuteByteCodeResult.class);
 
     private final long accessId;
-    private final ByteBuffer initiatorAddress;
     private final String initiatorAddressBase58;
     private final String contractAddressBase58;
     private final SmartContractBinary invokedContract;
@@ -35,13 +38,14 @@ public class ExecuteByteCodeSession {
     private final ContractExecutorService ceService;
     private final Map<String, ExternalSmartContract> usedContracts = new HashMap<>();
 
-    public ExecuteByteCodeSession(ContractExecutorService ceService, long accessId,
-                                  ByteBuffer initiatorAddress,
-                                  SmartContractBinary invokedContract,
-                                  List<MethodHeader> methodHeaders, long executionTime) {
+    ExecuteByteCodeSession(ContractExecutorService ceService,
+                           long accessId,
+                           ByteBuffer initiatorAddress,
+                           SmartContractBinary invokedContract,
+                           List<MethodHeader> methodHeaders,
+                           long executionTime) {
         this.ceService = ceService;
         this.accessId = accessId;
-        this.initiatorAddress = initiatorAddress;
         this.invokedContract = invokedContract;
         this.methodHeaders = methodHeaders;
         this.executionTime = executionTime;
@@ -54,12 +58,12 @@ public class ExecuteByteCodeSession {
         contractAddressBase58 = encodeToBASE58(invokedContract.getContractAddress());
     }
 
-    public ExecuteByteCodeResult perform() {
+    ExecuteByteCodeResult perform() {
         final var executionResult = isDeployContractSession
                 ? executeDeploy(createDeploySession())
                 : executeMethodsSequential();
 
-        return new ExecuteByteCodeResult(SUCCESS_API_RESPONSE, executionResult, wrapMapArgsToByteBuffer(usedContracts));
+        return new ExecuteByteCodeResult(SUCCESS_API_RESPONSE, executionResult);
     }
 
     @Override
@@ -79,9 +83,10 @@ public class ExecuteByteCodeSession {
     private List<SetterMethodResult> executeDeploy(DeployContractSession deploySession) {
         final var result = ceService.deploySmartContract(deploySession);
         final var firstResult = result.executeResults.get(0);
+        final var binaryContractAddress = ByteBuffer.wrap(decodeFromBASE58(contractAddressBase58));
         return List.of(new SetterMethodResult(firstResult.status,
-                                              ByteBuffer.wrap(result.newContractState),
                                               firstResult.result,
+                                              Map.of(binaryContractAddress, ByteBuffer.wrap(result.newContractState)),
                                               firstResult.spentCpuTime));
     }
 
@@ -95,16 +100,11 @@ public class ExecuteByteCodeSession {
                                 final var executionResult = ceService.executeSmartContract(createInvokeMethodSession(methodHeader));
                                 final var firstResult = executionResult.executeResults.get(0);
                                 results.add(new SetterMethodResult(firstResult.status,
-                                                                   ByteBuffer.wrap(executionResult.newContractState),
                                                                    firstResult.result,
+                                                                   wrapMapArgsToByteBuffer(executionResult.externalSmartContracts),
                                                                    firstResult.spentCpuTime));
-
                             } catch (Throwable e) {
-                                results.add(new SetterMethodResult(failureApiResponse(e),
-                                                                   ByteBuffer.allocate(0),
-                                                                   new Variant(V_STRING, e.getMessage()),
-                                                                   0));
-
+                                results.add(new SetterMethodResult(failureApiResponse(e), new Variant(V_STRING, e.getMessage()), emptyMap(), 0));
                             }
                             return results;
                         },
@@ -139,11 +139,9 @@ public class ExecuteByteCodeSession {
                 new HashMap<>(),
                 (newMap, address) -> {
                     var externalContractAddress = decodeFromBASE58(address);
-                    if (!Arrays.equals(externalContractAddress, initiatorAddress.array())) {
-                        newMap.put(
-                                ByteBuffer.wrap(externalContractAddress),
-                                ByteBuffer.wrap(externalContracts.get(address).getContractData().getContractState()));
-                    }
+                    newMap.put(
+                            ByteBuffer.wrap(externalContractAddress),
+                            ByteBuffer.wrap(externalContracts.get(address).getContractData().getContractState()));
                     return newMap;
                 },
                 (map1, map2) -> map1);

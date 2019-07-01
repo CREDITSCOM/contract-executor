@@ -8,7 +8,7 @@ import javax.inject.Singleton;
 
 
 @Singleton
-@Component(modules = {TestModule.class})
+@Component(modules = {TestModule.class, SmartContractsProviderTestModule.class})
 public interface TestComponent{
     void inject(ServiceTest serviceTest);
     void inject(ContractExecutorHandlerTest contractExecutorHandlerTest);

@@ -81,7 +81,7 @@ public class GetMethodOfContractTest extends ServiceTest {
         };
 
 
-        MethodDescriptionData[] contractsMethods = ceService.getContractsMethods(byteCodeObjectDataList).toArray(new MethodDescriptionData[1]);
+        MethodDescriptionData[] contractsMethods = ceService.getContractMethods(byteCodeObjectDataList).toArray(new MethodDescriptionData[1]);
 
         assertThat(contractsMethods, arrayContainingInAnyOrder(expectedMethods));
     }

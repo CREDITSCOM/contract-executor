@@ -31,7 +31,7 @@ import static com.credits.general.serialize.Serializer.deserialize;
 import static com.credits.general.serialize.Serializer.serialize;
 import static com.credits.service.BackwardCompatibilityService.allVersionsSmartContractClass;
 import static com.credits.thrift.utils.ContractExecutorUtils.compileSmartContractByteCode;
-import static com.credits.thrift.utils.ContractExecutorUtils.getRootClass;
+import static com.credits.thrift.utils.ContractExecutorUtils.findRootClass;
 import static com.credits.utils.ContractExecutorServiceUtils.*;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
@@ -51,7 +51,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     @Override
     public ReturnValue deploySmartContract(DeployContractSession session) throws ContractExecutorException {
-        final var contractClass = compileClassAndDropPermissions(session.byteCodeObjectDataList, getSmartContractClassLoader());
+        final var contractClass = findRootClass(compileClassesAndDropPermissions(session.byteCodeObjectDataList, getSmartContractClassLoader()));
         final var methodResult = new Deployer(session, contractClass).deploy();
         final var newContractState = methodResult.getInvokedObject() != null ? serialize(methodResult.getInvokedObject()) : new byte[0];
         return new ReturnValue(newContractState,
@@ -66,7 +66,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     @Override
     public ReturnValue executeSmartContract(InvokeMethodSession session) throws ContractExecutorException {
         final var contractClassLoader = getSmartContractClassLoader();
-        final var contractClass = compileClassAndDropPermissions(session.byteCodeObjectDataList, contractClassLoader);
+        final var contractClass = findRootClass(compileClassesAndDropPermissions(session.byteCodeObjectDataList, contractClassLoader));
         final var instance = deserialize(session.contractState, contractClassLoader);
 
         initNonStaticContractFields(session, contractClass, instance);
@@ -85,7 +85,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
         if (instance == null) {
             requireNonNull(classLoader, "classLoader is null");
-            final var contractClass = getRootClass(compileSmartContractByteCode(session.byteCodeObjectDataList, classLoader));
+            final var contractClass = findRootClass(compileSmartContractByteCode(session.byteCodeObjectDataList, classLoader));
             instance = deserialize(session.contractState, classLoader);
             initNonStaticContractFields(session, contractClass, instance);
             usedContracts.get(session.contractAddress).setInstance(instance);
@@ -109,10 +109,17 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     }
 
     @Override
-    public List<MethodDescriptionData> getContractsMethods(List<ByteCodeObjectData> byteCodeObjectDataList) {
+    public List<MethodDescriptionData> getContractMethods(List<ByteCodeObjectData> byteCodeObjectDataList) {
         requireNonNull(byteCodeObjectDataList, "bytecode of contract class is null");
 
-        final var contractClass = getRootClass(compileSmartContractByteCode(byteCodeObjectDataList, getSmartContractClassLoader()));
+        final var contractClass = findRootClass(compileSmartContractByteCode(byteCodeObjectDataList, getSmartContractClassLoader()));
+        return createMethodDescriptionListByClass(contractClass);
+    }
+
+    @Override
+    public List<MethodDescriptionData> getContractMethods(Class<?> contractClass) throws ContractExecutorException {
+        requireNonNull(contractClass, "contract class is null");
+
         return createMethodDescriptionListByClass(contractClass);
     }
 
@@ -129,12 +136,19 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     }
 
     @Override
-    public List<ByteCodeObjectData> compileClass(String sourceCode) throws ContractExecutorException, CompilationException {
+    public List<ByteCodeObjectData> compileContractClass(String sourceCode) throws ContractExecutorException, CompilationException {
         requireNonNull(sourceCode, "sourceCode of contract class is null");
         if (sourceCode.isEmpty()) throw new ContractExecutorException("sourceCode of contract class is empty");
 
         final var compilationPackage = InMemoryCompiler.compileSourceCode(sourceCode);
-        return GeneralConverter.compilationPackageToByteCodeObjects(compilationPackage);
+        return GeneralConverter.compilationPackageToByteCodeObjectsData(compilationPackage);
+    }
+
+    @Override
+    public List<Class<?>> buildContractClass(List<ByteCodeObjectData> byteCodeObjectDataList) {
+        requireNonNull(byteCodeObjectDataList, "bytecode of contract class is null");
+
+        return compileClassesAndDropPermissions(byteCodeObjectDataList, getSmartContractClassLoader());
     }
 
 
@@ -149,14 +163,11 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         session.usedContracts.put(session.contractAddress, usedContract);
     }
 
-    private Class<?> compileClassAndDropPermissions(List<ByteCodeObjectData> byteCodeObjectList, ByteCodeContractClassLoader classLoader)
+    private List<Class<?>> compileClassesAndDropPermissions(List<ByteCodeObjectData> byteCodeObjectList, ByteCodeContractClassLoader classLoader)
     throws ContractExecutorException {
         return compileSmartContractByteCode(byteCodeObjectList, classLoader).stream()
-                .peek(permissionManager::dropSmartContractRights).collect(toList())
-                .stream()
-                .filter(clazz -> !clazz.getName().contains("$"))
-                .findAny()
-                .orElseThrow(() -> new CompilationException("contract class not compiled"));
+                .peek(permissionManager::dropSmartContractRights)
+                .collect(toList());
     }
 
     private void initStaticContractFields(NodeApiExecInteractionService nodeApiExecService, Class<?> contract) {

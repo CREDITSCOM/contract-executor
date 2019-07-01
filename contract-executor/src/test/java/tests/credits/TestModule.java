@@ -22,19 +22,19 @@ public class TestModule {
 
     @Provides
     @Singleton
-    public ContractExecutorService provideContractExecutorService(NodeApiExecInteractionService nodeApi, PermissionsManager permissionsManager) {
+    ContractExecutorService provideContractExecutorService(NodeApiExecInteractionService nodeApi, PermissionsManager permissionsManager) {
         return new ContractExecutorServiceImpl(nodeApi, permissionsManager);
     }
 
     @Provides
     @Singleton
-    public NodeApiExecInteractionService provideMockNodeApiInteractionService() {
+    NodeApiExecInteractionService provideMockNodeApiInteractionService() {
         return mock(NodeApiExecInteractionService.class);
     }
 
     @Singleton
     @Provides
-    public PermissionsManager providesPermissionsManager() {
+    PermissionsManager providesPermissionsManager() {
         PermissionsManager permissionsManager = spy(PermissionsManager.class);
         doAnswer(invocation -> {
             final Class<?> contractClass = invocation.getArgument(0);

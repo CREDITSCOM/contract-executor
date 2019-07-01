@@ -23,6 +23,7 @@ import pojo.session.InvokeMethodSession;
 import service.executor.ContractExecutorService;
 import service.node.NodeApiExecInteractionService;
 import tests.credits.DaggerTestComponent;
+import tests.credits.TestUtils;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -30,7 +31,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +121,7 @@ public abstract class ServiceTest {
 
         CompilationPackage compilationPackage = new InMemoryCompiler().compile(classesToCompile);
         if (compilationPackage.isCompilationStatusSuccess()) {
-            return GeneralConverter.compilationPackageToByteCodeObjects(compilationPackage);
+            return GeneralConverter.compilationPackageToByteCodeObjectsData(compilationPackage);
         } else {
             var errors = compilationPackage.getCollector().getDiagnostics().stream()
                     .map(e -> "Line number: " + e.getLineNumber() + " Error message:" + e.getMessage(null))
@@ -170,7 +170,7 @@ public abstract class ServiceTest {
         return executeSmartContract(methodName, params, contractState, Long.MAX_VALUE);
     }
     protected ReturnValue executeSmartContract(byte[] contractState, String methodName, Object... params) {
-        return executeSmartContract(methodName, variantParamsOf(params), contractState, Long.MAX_VALUE);
+        return executeSmartContract(methodName, TestUtils.variantArrayOf(params), contractState, Long.MAX_VALUE);
     }
 
     protected ReturnValue executeSmartContract(String methodName,  byte[] contractState, long executionTime) {
@@ -196,10 +196,6 @@ public abstract class ServiceTest {
                         byteCodeObjectDataList,
                         contractState,
                         isCanModify));
-    }
-
-    private Variant[][] variantParamsOf(Object... params){
-        return new Variant[][]{Arrays.stream(params).map(p -> toVariant(getClassType(p), p)).collect(Collectors.toList()).toArray(Variant[]::new)};
     }
 
     private InvokeMethodSession createMethodSession(String methodName, byte[] contractState, long maxValue, Variant[][] variantParams) {

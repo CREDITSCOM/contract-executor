@@ -20,11 +20,15 @@ public interface ContractExecutorService {
 
     ReturnValue executeSmartContract(InvokeMethodSession session) throws ContractExecutorException;
 
-    List<MethodDescriptionData> getContractsMethods(List<ByteCodeObjectData> byteCodeObjectDataList) throws ContractExecutorException;
+    List<MethodDescriptionData> getContractMethods(List<ByteCodeObjectData> byteCodeObjectDataList) throws ContractExecutorException;
+
+    List<MethodDescriptionData> getContractMethods(Class<?> contractClass) throws ContractExecutorException;
+
+    List<ByteCodeObjectData> compileContractClass(String sourceCode) throws ContractExecutorException, CompilationException;
+
+    List<Class<?>> buildContractClass(List<ByteCodeObjectData> byteCodeObjectDataList);
 
     Map<String, Variant> getContractVariables(List<ByteCodeObjectData> contractBytecode, byte[] contractState) throws ContractExecutorException;
-
-    List<ByteCodeObjectData> compileClass(String sourceCode) throws ContractExecutorException, CompilationException;
 
     ReturnValue executeExternalSmartContract(InvokeMethodSession session, Map<String, ExternalSmartContract> usedContracts, ByteCodeContractClassLoader classLoader);
 

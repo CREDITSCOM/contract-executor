@@ -39,7 +39,7 @@ public class AnnotationTest extends ServiceTest {
         var testMultiple2 = createTestMultiple2MethodDescriptionData();
 
 
-        List<MethodDescriptionData> contractsMethods = ceService.getContractsMethods(byteCodeObjectDataList);
+        List<MethodDescriptionData> contractsMethods = ceService.getContractMethods(byteCodeObjectDataList);
         Assert.assertEquals(initialize, findMethod(contractsMethods, "initialize"));
         Assert.assertEquals(addTokens, findMethod(contractsMethods, "addTokens"));
         Assert.assertEquals(getTotal, findMethod(contractsMethods, "getTotal"));
