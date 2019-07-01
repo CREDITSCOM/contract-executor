@@ -33,14 +33,14 @@ Detailed steps are:
 
     
 
-<img src=".github/readme-images/ScreenJava1.jpg" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/bug_bounty/images/1.PNG" align="center">
 
 
 2. Download and install Maven and set the ‘M2_HOME’ and ‘MAVEN_HOME’ variables to maven installation folder. You can download Maven [here](https://maven.apache.org/download.cgi).
 
     
 
-<img src=".github/readme-images/ScreenMaven1.png" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/bug_bounty/images/2.PNG" align="center">
 
 
 
@@ -48,7 +48,7 @@ Detailed steps are:
 
     
 
-<img src=".github/readme-images/ScreenMavenBin2.jpg" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/bug_bounty/images/3.PNG" align="center">
 
 
 
@@ -56,7 +56,7 @@ Detailed steps are:
 ``` mvn -version```
 
     
-<img src=".github/readme-images/console.jpg" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/bug_bounty/images/4.PNG" align="center">
 
 
 
@@ -67,18 +67,20 @@ Detailed steps are:
 
 
 
-<img src=".github/readme-images/5.PNG" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/bug_bounty/images/5.PNG">
 
 
 8. Now, repeat the process for smart-contract-api repository. Clone it from the repository: [https://github.com/CREDITSCOM/smart-contract-api](https://github.com/CREDITSCOM/smart-contract-api)
 9. Change to the directory by using command:_ cd. _Then build compilation from sources by using the command: 
 ```mvn clean install```
 
-<img src=".github/readme-images/6.PNG" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/bug_bounty/images/6.PNG" align="center">
 
 
 10. Finally clone contract-executor repository from: [https://github.com/CREDITSCOM/contract-executor](https://github.com/CREDITSCOM/contract-executor)
 11. Change to the contract-executor directory and build it by using: _mvn clean install_. If all the steps were performed properly and secuently, errors won’t be.
+
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/bug_bounty/images/7.PNG" align="center">
 
 
 <h3>Resources</h3>
