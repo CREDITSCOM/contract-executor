@@ -40,7 +40,7 @@ Detailed steps are:
 
     
 
-<img src=".github/readme-images/2.png" align="center">
+<img src=".github/readme-images/ScreenMaven1.png" align="center">
 
 
 
