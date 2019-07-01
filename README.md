@@ -78,11 +78,11 @@ Detailed steps are:
 
 
 10. Finally clone contract-executor repository from: [https://github.com/CREDITSCOM/contract-executor](https://github.com/CREDITSCOM/contract-executor)
-11. Change to the contract-executor directory and build it by using: _mvn clean install_. If all the steps were performed properly and secuently, errors won’t be.
+11. Change to the contract-executor directory and build it by using:```mvn clean install```. If all the steps were performed properly and secuently, errors won’t be.
 
     
 
-<img src=".github/readme-images/7.png" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/77.PNG" align="center">
 
 <h3>Resources</h3>
 
