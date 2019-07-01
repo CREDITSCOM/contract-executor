@@ -33,14 +33,14 @@ Detailed steps are:
 
     
 
-<img src=".github/readme-images/11.png" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/11.PNG" align="center">
 
 
 2. Download and install Maven and set the ‘M2_HOME’ and ‘MAVEN_HOME’ variables to maven installation folder. You can download Maven [here](https://maven.apache.org/download.cgi).
 
     
 
-<img src=".github/readme-images/22.png" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/22.PNG" align="center">
 
 
 
@@ -48,7 +48,7 @@ Detailed steps are:
 
     
 
-<img src=".github/readme-images/33.png" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/33.PNG" align="center">
 
 
 
@@ -56,7 +56,7 @@ Detailed steps are:
 ``` mvn -version```
 
     
-<img src=".github/readme-images/44.png" align="center">
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/44.PNG" align="center">
 
 
 
