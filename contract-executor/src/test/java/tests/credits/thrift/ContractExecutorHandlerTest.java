@@ -159,7 +159,7 @@ public class ContractExecutorHandlerTest {
 
     private ReturnValue createSuccessResponse(Variant result) {
         return new ReturnValue(
-                any(),
+                new byte[1],
                 List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, result, 10)),
                 emptyMap());
     }
@@ -231,7 +231,7 @@ public class ContractExecutorHandlerTest {
         var returnContractState = new byte[]{0xB, 0xA, 0xB, 0xE};
         when(mockCEService.executeSmartContract(any()))
                 .thenReturn(new ReturnValue(contractState,
-                                            List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, any(), anyLong())),
+                                            List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, new Variant(), 0L)),
                                             Map.of(contractData.getContractAddressBase58(),
                                                    new ExternalSmartContract( new SmartContractGetResultData(new ApiResponseData(SUCCESS, "success"),
                                                                                                             contractData.getByteCodeObjectDataList(),

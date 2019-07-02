@@ -135,16 +135,20 @@ public class ExecuteByteCodeSession {
     }
 
     private Map<ByteBuffer, ByteBuffer> wrapMapArgsToByteBuffer(Map<String, ExternalSmartContract> externalContracts) {
-        return externalContracts.keySet().stream().reduce(
-                new HashMap<>(),
-                (newMap, address) -> {
-                    var externalContractAddress = decodeFromBASE58(address);
-                    newMap.put(
-                            ByteBuffer.wrap(externalContractAddress),
-                            ByteBuffer.wrap(externalContracts.get(address).getContractData().getContractState()));
-                    return newMap;
-                },
-                (map1, map2) -> map1);
+        if (externalContracts != null) {
+            return externalContracts.keySet().stream().reduce(
+                    new HashMap<>(),
+                    (newMap, address) -> {
+                        var externalContractAddress = decodeFromBASE58(address);
+                        newMap.put(
+                                ByteBuffer.wrap(externalContractAddress),
+                                ByteBuffer.wrap(externalContracts.get(address).getContractData().getContractState()));
+                        return newMap;
+                    },
+                    (map1, map2) -> map1);
+        } else {
+            return emptyMap();
+        }
     }
 
     private Variant[][] toVariantArray(List<Variant> variantList) {
