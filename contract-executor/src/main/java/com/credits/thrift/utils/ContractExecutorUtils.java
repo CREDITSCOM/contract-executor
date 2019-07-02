@@ -111,9 +111,10 @@ public class ContractExecutorUtils {
                         }));
     }
 
-    public static long defineTokenStandard(Class<?> clazz) {
+    public static long defineTokenStandard(Class<?> contractClass) {
+        final var contractInterfaces = contractClass.getInterfaces();
         return stream(TokenStandardId.values())
-                .filter(ts -> ts.getTokenStandardClass().equals(clazz))
+                .filter(ts -> stream(contractInterfaces).anyMatch(ci -> ts.getTokenStandardClass().equals(ci)))
                 .findFirst()
                 .orElse(NOT_A_TOKEN).getId();
     }
