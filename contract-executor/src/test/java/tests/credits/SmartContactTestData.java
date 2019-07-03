@@ -1,5 +1,6 @@
 package tests.credits;
 
+import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ByteCodeObjectData;
 import com.credits.general.thrift.generated.ByteCodeObject;
 
@@ -9,6 +10,8 @@ import java.util.Objects;
 
 import static com.credits.general.util.GeneralConverter.*;
 import static com.credits.general.util.compiler.InMemoryCompiler.compileSourceCode;
+import static com.credits.thrift.utils.ContractExecutorUtils.compileSmartContractByteCode;
+import static com.credits.thrift.utils.ContractExecutorUtils.findRootClass;
 import static java.nio.ByteBuffer.wrap;
 
 public class SmartContactTestData {
@@ -17,16 +20,18 @@ public class SmartContactTestData {
     private final List<ByteCodeObject> byteCodeObjectList;
     private final String contractAddressBase58;
     private final ByteBuffer contractAddressBinary;
+    private final Class<?> contractClass;
 
     private SmartContactTestData(String sourceCode,
                                  List<ByteCodeObjectData> byteCodeObjectDataList,
                                  List<ByteCodeObject> byteCodeObjectList, String contractAddressBase58,
-                                 ByteBuffer contractAddressBinary) {
+                                 ByteBuffer contractAddressBinary, Class<?> contractClass) {
         this.sourceCode = sourceCode;
         this.byteCodeObjectDataList = byteCodeObjectDataList;
         this.byteCodeObjectList = byteCodeObjectList;
         this.contractAddressBase58 = contractAddressBase58;
         this.contractAddressBinary = contractAddressBinary;
+        this.contractClass = contractClass;
     }
 
     public String getSourceCode() {
@@ -47,6 +52,10 @@ public class SmartContactTestData {
 
     public ByteBuffer getContractAddressBinary() {
         return contractAddressBinary;
+    }
+
+    public Class<?> getContractClass() {
+        return contractClass;
     }
 
     public static Builder builder() {
@@ -85,6 +94,7 @@ public class SmartContactTestData {
         private List<ByteCodeObject> byteCodeObjectList;
         private String contractAddressBase58;
         private ByteBuffer contractAddressBinary;
+        private Class<?> contractClass;
 
         public Builder setContractAddressBase58(String contractAddress) {
             this.contractAddressBase58 = contractAddress;
@@ -124,7 +134,9 @@ public class SmartContactTestData {
             this.byteCodeObjectList = this.byteCodeObjectList == null
                     ? byteCodeObjectsDataToByteCodeObjects(this.byteCodeObjectDataList)
                     : this.byteCodeObjectList;
-            return new SmartContactTestData(sourceCode, byteCodeObjectDataList, byteCodeObjectList, contractAddressBase58, contractAddressBinary);
+            this.contractClass = findRootClass(compileSmartContractByteCode(byteCodeObjectDataList, new ByteCodeContractClassLoader()));
+            return new SmartContactTestData(sourceCode, byteCodeObjectDataList, byteCodeObjectList, contractAddressBase58, contractAddressBinary,
+                                            contractClass);
         }
     }
 }

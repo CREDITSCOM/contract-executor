@@ -4,7 +4,7 @@ import dagger.Module;
 import dagger.Provides;
 
 import javax.inject.Singleton;
-import java.util.List;
+import java.util.Map;
 
 import static tests.credits.SmartContactTestData.builder;
 import static tests.credits.TestUtils.readSourceCode;
@@ -14,12 +14,16 @@ public class SmartContractsProviderTestModule {
 
     @Singleton
     @Provides
-    List<SmartContactTestData> provideSmartContractTestDataList() {
+    Map<String, SmartContactTestData> provideSmartContractTestDataList() {
         try {
-            return List.of(
+            return Map.of(
+                    "MySmartContract",
                     builder().setSourceCode(readSourceCode("com/credits/service/usercode/contractExecutorHandlerTest/MySmartContract.java")).build(),
-                    builder().setSourceCode(readSourceCode("com/credits/service/usercode/contractExecutorHandlerTest/MyBasicStandard.java")).build());
-        } catch (Throwable e){
+                    "MyBasicStandard",
+                    builder().setSourceCode(readSourceCode("com/credits/service/usercode/contractExecutorHandlerTest/MyBasicStandard.java")).build(),
+                    "MyExtensionTokenStandard",
+                    builder().setSourceCode(readSourceCode("com/credits/service/usercode/contractExecutorHandlerTest/MyExtensionTokenStandard.java")).build());
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
