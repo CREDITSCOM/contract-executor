@@ -15,7 +15,6 @@ import pojo.session.InvokeMethodSession;
 import service.executor.ContractExecutorService;
 import service.node.NodeApiExecInteractionService;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
@@ -55,6 +54,7 @@ public abstract class SmartContract extends SmartContractApi {
     }
 
     final protected Object invokeExternalContract(String contractAddress, String method, Object... params) {
+        if(method.equals("payable")) throw new ContractExecutorException("payable method cannot be called");
         ExternalSmartContract usedContract = usedContracts.containsKey(contractAddress)
             ? usedContracts.get(contractAddress)
             : new ExternalSmartContract(callService(() -> nodeApiService.getExternalSmartContractByteCode(accessId, contractAddress)));

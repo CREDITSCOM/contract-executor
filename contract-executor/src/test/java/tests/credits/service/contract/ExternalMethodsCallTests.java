@@ -6,8 +6,11 @@ import pojo.ReturnValue;
 import pojo.SmartContractMethodResult;
 import tests.credits.service.ServiceTest;
 
+import static com.credits.general.pojo.ApiResponseCode.FAILURE;
 import static com.credits.general.util.variant.VariantConverter.VOID_TYPE_VALUE;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
@@ -100,6 +103,25 @@ public class ExternalMethodsCallTests extends ServiceTest {
         assertThat(methodResult.status.message, is("success"));
         assertThat(methodResult.result.getFieldValue(), is(VOID_TYPE_VALUE));
         assertThat(returnValue.newContractState, equalTo(deployContractState));
+    }
+
+    @Test
+    public void invokePayableNotAllowedForCall() {
+
+        configureGetContractByteCodeNodeResponse(deployContractState, false);
+
+        final ReturnValue returnValue = executeExternalSmartContract(
+                "externalCall",
+                deployContractState,
+                calledSmartContractAddress,
+                "payable");
+
+        final SmartContractMethodResult methodResult = returnValue.executeResults.get(0);
+
+        assertThat(methodResult.status.code, is(FAILURE.code));
+        assertThat(methodResult.status.message, containsString("payable method cannot be called"));
+        assertThat(returnValue.newContractState, equalTo(deployContractState));
+        assertThat(returnValue.externalSmartContracts.get(calledSmartContractAddress), nullValue());
     }
 
     @Test

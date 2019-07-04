@@ -55,6 +55,7 @@ public abstract class SmartContract implements Serializable {
     }
 
     final protected Object invokeExternalContract(String contractAddress, String method, Object... params) {
+        if(method.equals("payable")) throw new ContractExecutorException("payable method cannot be called");
         ExternalSmartContract usedContract = usedContracts.containsKey(contractAddress)
             ? usedContracts.get(contractAddress)
             : new ExternalSmartContract(callService(() -> nodeApiService.getExternalSmartContractByteCode(accessId, contractAddress)));

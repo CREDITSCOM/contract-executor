@@ -73,6 +73,10 @@ public class MySmartContract extends SmartContract {
         return getTotal();
     }
 
+    public String payble(BigDecimal amount, byte[] userData){
+        return "payable called successfull";
+    }
+
     @Override
     public int hashCode() {
         return super.hashCode() + total;
