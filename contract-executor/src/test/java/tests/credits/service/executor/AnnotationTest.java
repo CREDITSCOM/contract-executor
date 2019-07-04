@@ -1,29 +1,29 @@
-package tests.credits.service.contract;
+package tests.credits.service.executor;
 
 import com.credits.general.pojo.AnnotationData;
 import com.credits.general.pojo.MethodArgumentData;
 import com.credits.general.pojo.MethodDescriptionData;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import tests.credits.service.ServiceTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import tests.credits.SmartContactTestData;
+import tests.credits.service.ContractExecutorTestContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-public class AnnotationTest extends ServiceTest {
+import static tests.credits.TestContract.AnnotationTestContract;
 
-    public AnnotationTest() {
-        super("/annotationTest/AnnotationTest.java");
-    }
+public class AnnotationTest extends ContractExecutorTestContext {
+    private SmartContactTestData contract;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         super.setUp();
+        contract = smartContractsRepository.get(AnnotationTestContract);
     }
-
 
     @Test
     public void get_methods_of_contract() throws Exception {
@@ -39,7 +39,7 @@ public class AnnotationTest extends ServiceTest {
         var testMultiple2 = createTestMultiple2MethodDescriptionData();
 
 
-        List<MethodDescriptionData> contractsMethods = ceService.getContractMethods(byteCodeObjectDataList);
+        List<MethodDescriptionData> contractsMethods = ceService.getContractMethods(contract.getByteCodeObjectDataList());
         Assert.assertEquals(initialize, findMethod(contractsMethods, "initialize"));
         Assert.assertEquals(addTokens, findMethod(contractsMethods, "addTokens"));
         Assert.assertEquals(getTotal, findMethod(contractsMethods, "getTotal"));

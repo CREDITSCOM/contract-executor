@@ -28,7 +28,7 @@ public class SmartContractConstants {
 
 
     public static SmartContractConstants getSessionSmartContractConstants(long threadId) {
-        return Objects.requireNonNull(sessions.remove(threadId), "smart contract constants is null. Thread id=" + threadId);
+        return Objects.requireNonNull(sessions.remove(threadId), "contract constants is null. Thread id=" + threadId);
     }
 
     @Override

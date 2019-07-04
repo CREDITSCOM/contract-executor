@@ -1,43 +1,43 @@
-package tests.credits.service.contract;
+package tests.credits.service.executor;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import pojo.ReturnValue;
 import pojo.SmartContractMethodResult;
-import tests.credits.service.ServiceTest;
+import tests.credits.SmartContactTestData;
+import tests.credits.service.ContractExecutorTestContext;
 
 import static com.credits.general.util.variant.VariantConverter.VOID_TYPE_VALUE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
+import static tests.credits.TestContract.SmartContractV0TestImpl;
 
-public class ExternalMethodsCallTests extends ServiceTest {
+public class ExternalMethodsCallTest extends ContractExecutorTestContext {
 
-    private String calledSmartContractAddress = "5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpe";
-    public byte[] deployContractState;
+    private final String calledSmartContractAddress = "5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpe";
+    private SmartContactTestData smartContract;
+    private byte[] deployContractState = null;
 
-    public ExternalMethodsCallTests() {
-        super("/serviceTest/MySmartContract.java");
-    }
-
-    @Before
-    @Override
-    public void setUp() throws Exception {
+    @BeforeEach
+    protected void setUp() throws Exception {
         super.setUp();
-        deployContractState = deploySmartContract().newContractState;
+        smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
+        deployContractState = deploySmartContract(smartContract).newContractState;
     }
 
     @Test
     public void getter_method_must_not_change_state() {
 
-        configureGetContractByteCodeNodeResponse(deployContractState, false);
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, false);
 
         final ReturnValue returnValue = executeExternalSmartContract(
-            "externalCall",
-            deployContractState,
-            calledSmartContractAddress,
-            "getTotal");
+                smartContract,
+                deployContractState,
+                "externalCall",
+                calledSmartContractAddress,
+                "getTotal");
 
         final SmartContractMethodResult methodResult = returnValue.executeResults.get(0);
 
@@ -45,38 +45,40 @@ public class ExternalMethodsCallTests extends ServiceTest {
         assertThat(methodResult.result.getV_int(), is(0));
         assertThat(returnValue.newContractState, equalTo(deployContractState));
         assertThat(
-            returnValue.newContractState,
-            equalTo(returnValue.externalSmartContracts.get(calledSmartContractAddress).getContractData().getContractState()));
+                returnValue.newContractState,
+                equalTo(returnValue.externalSmartContracts.get(calledSmartContractAddress).getContractData().getContractState()));
     }
 
     @Test
     public void setter_method_must_return_new_states() {
-        configureGetContractByteCodeNodeResponse(deployContractState, true);
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
         final ReturnValue returnValue = executeExternalSmartContract(
-            "externalCallChangeState",
-            deployContractState,
-            calledSmartContractAddress,
-            "addTokens",
-            10);
+                smartContract,
+                deployContractState,
+                "externalCallChangeState",
+                calledSmartContractAddress,
+                "addTokens",
+                10);
 
         final SmartContractMethodResult methodResult = returnValue.executeResults.get(0);
 
         assertThat(methodResult.status.message, is("success"));
         assertThat(returnValue.newContractState, equalTo(deployContractState));
         assertThat(
-            returnValue.newContractState,
-            not(equalTo(returnValue.externalSmartContracts.get(calledSmartContractAddress).getContractData().getContractState())));
+                returnValue.newContractState,
+                not(equalTo(returnValue.externalSmartContracts.get(calledSmartContractAddress).getContractData().getContractState())));
     }
 
     @Test
     public void recursion_contract_call() {
-        configureGetContractByteCodeNodeResponse(deployContractState, true);
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
         final ReturnValue returnValue = executeExternalSmartContract(
-            "recursionExternalContractSetterCall",
-            deployContractState,
-            10);
+                smartContract,
+                deployContractState,
+                "recursionExternalContractSetterCall",
+                10);
 
         final SmartContractMethodResult methodResult = returnValue.executeResults.get(0);
 
@@ -89,11 +91,12 @@ public class ExternalMethodsCallTests extends ServiceTest {
 
     @Test
     public void passObjectToExternalCall() {
-        configureGetContractByteCodeNodeResponse(deployContractState, true);
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
         final ReturnValue returnValue = executeExternalSmartContract(
-            "useObjectIntoParams",
-            deployContractState);
+                smartContract,
+                deployContractState,
+                "useObjectIntoParams");
 
         final SmartContractMethodResult methodResult = returnValue.executeResults.get(0);
 

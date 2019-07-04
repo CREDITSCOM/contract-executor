@@ -3,13 +3,9 @@ import com.credits.scapi.annotations.ContractMethod;
 import com.credits.scapi.annotations.UsingContract;
 import com.credits.scapi.v0.SmartContract;
 
-public class MySmartContract extends SmartContract {
+public class GetContractMethodsTestContract extends SmartContract {
 
     public int total;
-
-    public MySmartContract() {
-        System.out.println("It is initiator adderss - " + initiator);
-    }
 
     public void initialize() {
         String name = Thread.currentThread().getName();

@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import com.credits.scapi.v0.SmartContract;
 import com.credits.scapi.v1.ExtensionTokenStandard;
 
-public class MySmartContract implements ExtensionTokenStandard {
+public class ExtensionTokenStandardTestImpl implements ExtensionTokenStandard {
 
     @Override
     public void register() {

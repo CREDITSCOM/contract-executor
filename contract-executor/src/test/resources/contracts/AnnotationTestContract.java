@@ -3,7 +3,7 @@ import com.credits.scapi.v0.SmartContract;
 
 import java.math.BigDecimal;
 
-public class AnnotationTest extends SmartContract {
+public class AnnotationTestContract extends SmartContract {
 
     public int total;
 
@@ -12,10 +12,6 @@ public class AnnotationTest extends SmartContract {
         String name = Thread.currentThread().getName();
         System.out.println("The initialize method has been invoked");
         total = 1;
-    }
-
-    public AnnotationTest() {
-        System.out.println("It is initiator adderss - " + initiator);
     }
 
     @Getter

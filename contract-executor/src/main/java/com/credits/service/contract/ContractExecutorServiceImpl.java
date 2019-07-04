@@ -110,7 +110,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     @Override
     public List<MethodDescriptionData> getContractMethods(List<ByteCodeObjectData> byteCodeObjectDataList) {
-        requireNonNull(byteCodeObjectDataList, "bytecode of contract class is null");
+        requireNonNull(byteCodeObjectDataList, "bytecode of executor class is null");
 
         final var contractClass = findRootClass(compileSmartContractByteCode(byteCodeObjectDataList, getSmartContractClassLoader()));
         return createMethodDescriptionListByClass(contractClass);
@@ -118,7 +118,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     @Override
     public List<MethodDescriptionData> getContractMethods(Class<?> contractClass) throws ContractExecutorException {
-        requireNonNull(contractClass, "contract class is null");
+        requireNonNull(contractClass, "executor class is null");
 
         return createMethodDescriptionListByClass(contractClass);
     }
@@ -126,9 +126,9 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     @Override
     public Map<String, Variant> getContractVariables(List<ByteCodeObjectData> byteCodeObjectDataList, byte[] contractState)
     throws ContractExecutorException {
-        requireNonNull(byteCodeObjectDataList, "bytecode of contract class is null");
-        requireNonNull(contractState, "contract state is null");
-        if (contractState.length == 0) throw new ContractExecutorException("contract state is empty");
+        requireNonNull(byteCodeObjectDataList, "bytecode of executor class is null");
+        requireNonNull(contractState, "executor state is null");
+        if (contractState.length == 0) throw new ContractExecutorException("executor state is empty");
 
         var contractClassLoader = new ByteCodeContractClassLoader();
         compileSmartContractByteCode(byteCodeObjectDataList, contractClassLoader);
@@ -137,8 +137,8 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     @Override
     public List<ByteCodeObjectData> compileContractClass(String sourceCode) throws ContractExecutorException, CompilationException {
-        requireNonNull(sourceCode, "sourceCode of contract class is null");
-        if (sourceCode.isEmpty()) throw new ContractExecutorException("sourceCode of contract class is empty");
+        requireNonNull(sourceCode, "sourceCode of executor class is null");
+        if (sourceCode.isEmpty()) throw new ContractExecutorException("sourceCode of executor class is empty");
 
         final var compilationPackage = InMemoryCompiler.compileSourceCode(sourceCode);
         return GeneralConverter.compilationPackageToByteCodeObjectsData(compilationPackage);
@@ -146,7 +146,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     @Override
     public List<Class<?>> buildContractClass(List<ByteCodeObjectData> byteCodeObjectDataList) {
-        requireNonNull(byteCodeObjectDataList, "bytecode of contract class is null");
+        requireNonNull(byteCodeObjectDataList, "bytecode of executor class is null");
 
         return compileClassesAndDropPermissions(byteCodeObjectDataList, getSmartContractClassLoader());
     }

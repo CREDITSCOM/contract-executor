@@ -1,10 +1,6 @@
 import com.credits.scapi.v0.BasicStandard;
 
-public class MyBasicStandard implements BasicStandard {
-
-    public MyBasicStandard() {
-        System.out.println();
-    }
+public class BasicStandardTestImpl implements BasicStandard {
 
     public String getName() {
         return "CS Credits";

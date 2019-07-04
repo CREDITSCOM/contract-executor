@@ -2,8 +2,8 @@ package tests.credits.secure;
 
 import com.credits.secure.Sandbox;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.FilePermission;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.util.stream.IntStream;
 import static org.junit.Assert.fail;
 
 
-@Ignore
+@Disabled
 public class SandboxTest {
 
     @Test
@@ -65,7 +65,7 @@ public class SandboxTest {
         unsafeClass.callChildMethod();
     }
 
-    @Test(expected = SecurityException.class)
+    @Test
     public void reflectionUse() throws InstantiationException, IllegalAccessException {
         UnsafeClass unsafeClass = new UnsafeClass();
         Sandbox.confine(unsafeClass.getClass(), new Permissions());

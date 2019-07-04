@@ -1,7 +1,7 @@
 package tests.credits;
 
 import dagger.Component;
-import tests.credits.service.ServiceTest;
+import tests.credits.service.ContractExecutorTestContext;
 import tests.credits.thrift.ContractExecutorHandlerTest;
 
 import javax.inject.Singleton;
@@ -10,6 +10,6 @@ import javax.inject.Singleton;
 @Singleton
 @Component(modules = {TestModule.class, SmartContractsProviderTestModule.class})
 public interface TestComponent{
-    void inject(ServiceTest serviceTest);
+    void inject(ContractExecutorTestContext contractExecutorTestContext);
     void inject(ContractExecutorHandlerTest contractExecutorHandlerTest);
 }

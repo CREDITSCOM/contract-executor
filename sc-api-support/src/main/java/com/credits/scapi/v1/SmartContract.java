@@ -91,7 +91,7 @@ public abstract class SmartContract implements Serializable {
         if (!usedContract.getContractData().isStateCanModify() && !Arrays.equals(
             usedContract.getContractData().getContractState(),
             returnValue.newContractState)) {
-            throw new ContractExecutorException("smart contract \"" + contractAddress + "\" can't be modify");
+            throw new ContractExecutorException("smart executor \"" + contractAddress + "\" can't be modify");
         }
         usedContract.getContractData().setContractState(returnValue.newContractState);
 

@@ -15,7 +15,6 @@ import pojo.session.InvokeMethodSession;
 import service.executor.ContractExecutorService;
 import service.node.NodeApiExecInteractionService;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
@@ -91,7 +90,7 @@ public abstract class SmartContract extends SmartContractApi {
         if (!usedContract.getContractData().isStateCanModify() && !Arrays.equals(
             usedContract.getContractData().getContractState(),
             returnValue.newContractState)) {
-            throw new ContractExecutorException("smart contract \"" + contractAddress + "\" can't be modify");
+            throw new ContractExecutorException("smart executor \"" + contractAddress + "\" can't be modify");
         }
         usedContract.getContractData().setContractState(returnValue.newContractState);
 

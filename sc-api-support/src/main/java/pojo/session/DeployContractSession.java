@@ -27,7 +27,7 @@ public class DeployContractSession extends Session {
 
     private void validateArguments(String initiatorAddress, String contractAddress, List<ByteCodeObjectData> byteCodeObjectDataList) {
         requireNonNull(initiatorAddress, "initiator address is null");
-        requireNonNull(contractAddress, "contract address is null");
+        requireNonNull(contractAddress, "executor address is null");
         requireNonNull(byteCodeObjectDataList, "byte code objects is null");
         if (byteCodeObjectDataList.isEmpty()) {
             throw new ContractExecutorException("bytecode objects is empty");

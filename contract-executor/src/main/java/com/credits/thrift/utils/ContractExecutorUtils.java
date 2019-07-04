@@ -66,7 +66,7 @@ public class ContractExecutorUtils {
         return classes.stream()
                 .filter(clazz -> !clazz.getName().contains("$"))
                 .findAny()
-                .orElseThrow(() -> new ContractExecutorException("contract class not compiled"));
+                .orElseThrow(() -> new ContractExecutorException("executor class not compiled"));
     }
 
     public static List<Class<?>> compileSmartContractByteCode(

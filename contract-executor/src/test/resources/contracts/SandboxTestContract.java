@@ -8,11 +8,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.io.File;
 
-public class MySmartContract extends SmartContract {
+public class SandBoxTestContract extends SmartContract {
 
     private int total;
 
-    public MySmartContract() throws Exception {
+    public SandBoxTestContract() throws Exception {
         String name = Thread.currentThread().getName();
         System.out.println("The constructor has been invoked. Thread: " + name);
     }

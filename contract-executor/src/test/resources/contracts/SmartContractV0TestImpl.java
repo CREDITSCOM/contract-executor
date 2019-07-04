@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 
-public class MySmartContract extends SmartContract {
+public class SmartContractV0TestImpl extends SmartContract {
 
     public int total;
 
@@ -18,17 +18,13 @@ public class MySmartContract extends SmartContract {
         total = 1;
     }
 
-    public MySmartContract() {
-        System.out.println("It is initiator adderss - " + initiator);
-    }
-
     public void addTokens(Integer amount) {
         total += amount;
         System.out.println(java.lang.Integer.toString(amount) + " tokens were added to total");
     }
 
-    public BigDecimal getBalanceTest(String addressBase58) {
-        return super.getBalance(addressBase58);
+    public BigDecimal getBalanceTest() {
+        return super.getBalance(initiator);
     }
 
     public void printTotal() {
@@ -44,8 +40,7 @@ public class MySmartContract extends SmartContract {
         throw new RuntimeException("oops some problem");
     }
 
-    public boolean payable(String amount, String currency) throws Exception {
-//        NumberFormat nf = NumberFormat.getInstance(java.util.Locale.ENGLISH);
+    public boolean createTransactionIntoContract(String amount) throws Exception {
         BigDecimal val = new BigDecimal(amount);
         sendTransaction(initiator, contractAddress, val.doubleValue(), 1.0);
         return true;
@@ -132,6 +127,10 @@ public class MySmartContract extends SmartContract {
             Thread.sleep(10);
         } catch (InterruptedException ignored) {
         }
+    }
+
+    public void thisMethodThrowsException() {
+        throw new RuntimeException("oops some problem");
     }
 
     public static class Geo implements Serializable {

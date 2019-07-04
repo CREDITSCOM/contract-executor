@@ -7,6 +7,7 @@ import pojo.session.InvokeMethodSession;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.credits.general.serialize.Serializer.deserialize;
 import static com.credits.general.util.variant.VariantConverter.toVariant;
 import static com.credits.utils.ContractExecutorServiceUtils.getMethodArgumentsValuesByNameAndParams;
 import static java.util.Arrays.stream;
@@ -14,7 +15,7 @@ import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMess
 
 class MethodExecutor extends LimitedExecutionMethod<Variant> {
     private final InvokeMethodSession session;
-    private final Object instance;
+    private Object instance;
     private final ClassLoader classLoader;
 
     public MethodExecutor(InvokeMethodSession session, Object contractInstance) {
@@ -39,9 +40,12 @@ class MethodExecutor extends LimitedExecutionMethod<Variant> {
     }
 
     private List<MethodResult> invokeMultipleMethod() {
-        return stream(session.paramsTable)
-                .map(r -> prepareResult(invoke(r)))
-                .collect(Collectors.toList());
+        return stream(session.paramsTable).map(params -> prepareResult(invokeUsingPrimaryContractState(params))).collect(Collectors.toList());
+    }
+
+    private Variant invokeUsingPrimaryContractState(Variant... params) {
+        instance = deserialize(session.contractState, instance.getClass().getClassLoader());
+        return invoke(params);
     }
 
     private Variant invoke(Variant... params) {

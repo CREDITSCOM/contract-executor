@@ -15,10 +15,13 @@ import static tests.credits.TestUtils.readSourceCode;
 @Module
 public class SmartContractsProviderTestModule {
 
+    public static final Map<TestContract, SmartContactTestData> smartContractTestDataMap =
+            stream(TestContract.values())
+                    .collect(toMap((k) -> k, v -> builder().setSourceCode(rethrowUnchecked(() -> readSourceCode(v.path))).build()));
+
     @Singleton
     @Provides
-    Map<TestContact, SmartContactTestData> provideSmartContractTestDataList() {
-        return stream(TestContact.values())
-                .collect(toMap((k) -> k, v -> builder().setSourceCode(rethrowUnchecked(() -> readSourceCode(v.path))).build()));
+    Map<TestContract, SmartContactTestData> provideSmartContractTestDataMap() {
+        return smartContractTestDataMap;
     }
 }

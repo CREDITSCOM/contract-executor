@@ -3,17 +3,13 @@ import com.credits.scapi.v0.SmartContract;
 import java.util.List;
 import java.util.ArrayList;
 
-public class MethodParametersTest extends SmartContract {
+public class MethodParametersTestContract extends SmartContract {
 
     private static int statIntVar = 2;
 
     private int intVar = 1;
 
     public void initialize() {}
-
-    public MethodParametersTest(){
-        super();
-    }
 
     public static Integer mainString(List<String> args) {
         System.out.println("Method main(List<String> args) has been invoked");
