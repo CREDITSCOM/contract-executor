@@ -10,14 +10,19 @@ import com.credits.client.node.thrift.generated.WalletIdGetResult;
 import com.credits.exception.ApiClientException;
 import com.credits.general.thrift.ThriftClientPool;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 
 public class NodeThriftApiExecClient implements NodeThriftApiExec {
     private final ThriftClientPool<APIEXEC.Client> pool;
+    private final static Logger logger = LoggerFactory.getLogger(NodeThriftApiExecClient.class);
 
     public NodeThriftApiExecClient(String apiServerHost, Integer apiServerPort) {
         pool = new ThriftClientPool<>(APIEXEC.Client::new, apiServerHost, apiServerPort);
+
+        logger.info("Connection to node on address {}:{}", apiServerHost, apiServerPort);
     }
 
     @Override
