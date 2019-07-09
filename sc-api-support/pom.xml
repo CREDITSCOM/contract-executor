@@ -8,12 +8,12 @@
     <groupId>com.credits.sc-api</groupId>
     <artifactId>sc-api-support</artifactId>
     <packaging>jar</packaging>
-    <version>0.8.1</version>
+    <version>0.8.2</version>
 
     <parent>
         <groupId>com.credits.executor</groupId>
         <artifactId>contract-executor-root</artifactId>
-        <version>0.8.1</version>
+        <version>0.8.2</version>
     </parent>
 
     <build>

@@ -74,6 +74,20 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         return executeContractMethod(session, instance);
     }
 
+    private ReturnValue executeContractMethod(InvokeMethodSession session, Object contractInstance) {
+        final var executor = new MethodExecutor(session, contractInstance);
+        final var methodResults = executor.execute();
+        return new ReturnValue(serialize(executor.getSmartContractObject()),
+                               methodResults.stream()
+                                       .map(mr -> mr.getException() == null
+                                               ? new SmartContractMethodResult(SUCCESS_API_RESPONSE, mr.getReturnValue(), mr.getSpentCpuTime())
+                                               : new SmartContractMethodResult(failureApiResponse(mr.getException()),
+                                                                               mr.getReturnValue(),
+                                                                               mr.getSpentCpuTime()))
+                                       .collect(toList()),
+                               session.usedContracts);
+    }
+
     @Override
     public ReturnValue executeExternalSmartContract(InvokeMethodSession session,
                                                     Map<String, ExternalSmartContract> usedContracts,
@@ -92,20 +106,6 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         }
 
         return executeContractMethod(session, instance);
-    }
-
-    private ReturnValue executeContractMethod(InvokeMethodSession session, Object contractInstance) {
-        final var executor = new MethodExecutor(session, contractInstance);
-        final var methodResults = executor.execute();
-        return new ReturnValue(serialize(executor.getSmartContractObject()),
-                               methodResults.stream()
-                                       .map(mr -> mr.getException() == null
-                                               ? new SmartContractMethodResult(SUCCESS_API_RESPONSE, mr.getReturnValue(), mr.getSpentCpuTime())
-                                               : new SmartContractMethodResult(failureApiResponse(mr.getException()),
-                                                                               mr.getReturnValue(),
-                                                                               mr.getSpentCpuTime()))
-                                       .collect(toList()),
-                               session.usedContracts);
     }
 
     @Override
