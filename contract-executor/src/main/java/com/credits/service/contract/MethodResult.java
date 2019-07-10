@@ -9,19 +9,22 @@ class MethodResult {
     private final long spentCpuTime;
     private final Variant returnValue;
     private final Throwable exception;
+    private final long threadId;
     private Object invokedObject;
 
-    public MethodResult(Variant returnValue, long spentCpuTime) {
+    public MethodResult(Variant returnValue, long spentCpuTime, long threadId) {
         this.spentCpuTime = spentCpuTime;
         this.returnValue = returnValue;
+        this.threadId = threadId;
         exception = null;
     }
 
-    public MethodResult(Throwable exception, long spentCpuTime) {
+    public MethodResult(Throwable exception, long spentCpuTime, long threadId) {
         this.spentCpuTime = spentCpuTime;
         this.exception = exception;
 
         returnValue = new Variant(V_STRING, getRootCauseMessage(exception));
+        this.threadId = threadId;
     }
 
     public long getSpentCpuTime() {
@@ -44,4 +47,7 @@ class MethodResult {
         this.invokedObject = invokedObject;
     }
 
+    public long getThreadId() {
+        return threadId;
+    }
 }

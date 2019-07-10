@@ -65,7 +65,7 @@ public class ContractExecutorHandlerTest {
         DaggerCEHandlerTestComponent.builder().build().inject(this);
         when(mockCEService.deploySmartContract(any())).thenReturn(
                 new ReturnValue(new byte[]{0xC, 0xA, 0xF, 0xE},
-                                List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, voidVariantResult, 10)),
+                                List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, voidVariantResult, 10, emptyList())),
                                 emptyMap()));
     }
 
@@ -160,7 +160,7 @@ public class ContractExecutorHandlerTest {
     private ReturnValue createSuccessResponse(Variant result) {
         return new ReturnValue(
                 new byte[1],
-                List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, result, 10)),
+                List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, result, 10, emptyList())),
                 emptyMap());
     }
 
@@ -188,7 +188,7 @@ public class ContractExecutorHandlerTest {
         when(mockCEService.executeSmartContract(any())).thenReturn(
                 new ReturnValue(new byte[1],
                                 List.of(new SmartContractMethodResult(failureApiResponse(new RuntimeException("oops some problem")),
-                                                                      new Variant(V_STRING, "oops some problem"), 0L)),
+                                                                      new Variant(V_STRING, "oops some problem"), 0L, emptyList())),
                                 null));
 
         var result = executeSmartContract(contractState, List.of(new MethodHeader("methodThrowsException", emptyList())));
@@ -232,7 +232,7 @@ public class ContractExecutorHandlerTest {
         var returnContractState = new byte[]{0xB, 0xA, 0xB, 0xE};
         when(mockCEService.executeSmartContract(any()))
                 .thenReturn(new ReturnValue(contractState,
-                                            List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, new Variant(), 0L)),
+                                            List.of(new SmartContractMethodResult(SUCCESS_API_RESPONSE, new Variant(), 0L, emptyList())),
                                             Map.of(contractData.getContractAddressBase58(),
                                                    new ExternalSmartContract( new SmartContractGetResultData(new ApiResponseData(SUCCESS, "success"),
                                                                                                             contractData.getByteCodeObjectDataList(),

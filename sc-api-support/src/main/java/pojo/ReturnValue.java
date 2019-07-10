@@ -12,9 +12,9 @@ public class ReturnValue {
     public final Map<String, ExternalSmartContract> externalSmartContracts;
 
     public ReturnValue(
-        byte[] newContractState,
-        List<SmartContractMethodResult> executeResults,
-        Map<String, ExternalSmartContract> externalSmartContracts) {
+            byte[] newContractState,
+            List<SmartContractMethodResult> executeResults,
+            Map<String, ExternalSmartContract> externalSmartContracts) {
         this.newContractState = newContractState;
         this.externalSmartContracts = externalSmartContracts;
         this.executeResults = executeResults;

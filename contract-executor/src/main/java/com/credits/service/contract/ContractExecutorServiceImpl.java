@@ -21,6 +21,7 @@ import pojo.session.DeployContractSession;
 import pojo.session.InvokeMethodSession;
 import service.executor.ContractExecutorService;
 import service.node.NodeApiExecInteractionService;
+import service.node.NodeApiExecStoreTransactionService;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -41,10 +42,12 @@ import static java.util.stream.Collectors.toList;
 public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     private final PermissionsManager permissionManager;
+    private final NodeApiExecStoreTransactionService nodeApiExecService;
 
     @Inject
-    public ContractExecutorServiceImpl(NodeApiExecInteractionService nodeApiExecService, PermissionsManager permissionManager) {
+    public ContractExecutorServiceImpl(NodeApiExecStoreTransactionService nodeApiExecService, PermissionsManager permissionManager) {
         this.permissionManager = permissionManager;
+        this.nodeApiExecService = nodeApiExecService;
         allVersionsSmartContractClass.forEach(contract -> initStaticContractFields(nodeApiExecService, contract));
         permissionManager.grantAllPermissions(NodeApiExecInteractionServiceImpl.class);
     }
@@ -54,12 +57,14 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         final var contractClass = findRootClass(compileClassesAndDropPermissions(session.byteCodeObjectDataList, getSmartContractClassLoader()));
         final var methodResult = new Deployer(session, contractClass).deploy();
         final var newContractState = methodResult.getInvokedObject() != null ? serialize(methodResult.getInvokedObject()) : new byte[0];
+        final var emittedTransactions = nodeApiExecService.takeAwayEmittedTransactions(methodResult.getThreadId());
         return new ReturnValue(newContractState,
                                singletonList(new SmartContractMethodResult(methodResult.getException() != null
                                                                                    ? failureApiResponse(methodResult.getException())
                                                                                    : SUCCESS_API_RESPONSE,
                                                                            methodResult.getReturnValue(),
-                                                                           methodResult.getSpentCpuTime())),
+                                                                           methodResult.getSpentCpuTime(),
+                                                                           emittedTransactions)),
                                session.usedContracts);
     }
 
@@ -80,10 +85,14 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         return new ReturnValue(serialize(executor.getSmartContractObject()),
                                methodResults.stream()
                                        .map(mr -> mr.getException() == null
-                                               ? new SmartContractMethodResult(SUCCESS_API_RESPONSE, mr.getReturnValue(), mr.getSpentCpuTime())
+                                               ? new SmartContractMethodResult(SUCCESS_API_RESPONSE,
+                                                                               mr.getReturnValue(),
+                                                                               mr.getSpentCpuTime(),
+                                                                               nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId()))
                                                : new SmartContractMethodResult(failureApiResponse(mr.getException()),
                                                                                mr.getReturnValue(),
-                                                                               mr.getSpentCpuTime()))
+                                                                               mr.getSpentCpuTime(),
+                                                                               nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId())))
                                        .collect(toList()),
                                session.usedContracts);
     }
@@ -126,9 +135,9 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     @Override
     public Map<String, Variant> getContractVariables(List<ByteCodeObjectData> byteCodeObjectDataList, byte[] contractState)
     throws ContractExecutorException {
-        requireNonNull(byteCodeObjectDataList, "bytecode of executor class is null");
-        requireNonNull(contractState, "executor state is null");
-        if (contractState.length == 0) throw new ContractExecutorException("executor state is empty");
+        requireNonNull(byteCodeObjectDataList, "bytecode of contract class is null");
+        requireNonNull(contractState, "contract state is null");
+        if (contractState.length == 0) throw new ContractExecutorException("contract state is empty");
 
         var contractClassLoader = new ByteCodeContractClassLoader();
         compileSmartContractByteCode(byteCodeObjectDataList, contractClassLoader);

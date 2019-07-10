@@ -1,6 +1,8 @@
 package tests.credits;
 
 import com.credits.secure.PermissionsManager;
+import com.credits.service.node.apiexec.NodeApiExecInteractionServiceImpl;
+import com.credits.service.node.apiexec.NodeThriftApiExec;
 import com.credits.thrift.ContractExecutorHandler;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import dagger.internal.DoubleCheck;
@@ -9,9 +11,11 @@ import java.util.Map;
 import javax.annotation.processing.Generated;
 import javax.inject.Provider;
 import service.executor.ContractExecutorService;
-import service.node.NodeApiExecInteractionService;
+import service.node.NodeApiExecStoreTransactionService;
 import tests.credits.service.ContractExecutorTestContext;
 import tests.credits.service.ContractExecutorTestContext_MembersInjector;
+import tests.credits.service.node.NodeApiExecInteractionServiceImplTest;
+import tests.credits.service.node.NodeApiExecInteractionServiceImplTest_MembersInjector;
 import tests.credits.thrift.ContractExecutorHandlerTest;
 import tests.credits.thrift.ContractExecutorHandlerTest_MembersInjector;
 
@@ -20,7 +24,10 @@ import tests.credits.thrift.ContractExecutorHandlerTest_MembersInjector;
   comments = "https://google.github.io/dagger"
 )
 public final class DaggerTestComponent implements TestComponent {
-  private Provider<NodeApiExecInteractionService> provideMockNodeApiInteractionServiceProvider;
+  private Provider<NodeThriftApiExec> provideNodeThriftApiExecServiceProvider;
+
+  private Provider<NodeApiExecStoreTransactionService>
+      provideMockNodeApiStoreTransactionServiceProvider;
 
   private Provider<PermissionsManager> providesPermissionsManagerProvider;
 
@@ -47,20 +54,28 @@ public final class DaggerTestComponent implements TestComponent {
     return new ContractExecutorHandler(provideContractExecutorServiceProvider.get());
   }
 
+  private NodeApiExecInteractionServiceImpl getNodeApiExecInteractionServiceImpl() {
+    return new NodeApiExecInteractionServiceImpl(provideNodeThriftApiExecServiceProvider.get());
+  }
+
   @SuppressWarnings("unchecked")
   private void initialize(
       final TestModule testModuleParam,
       final SmartContractsProviderTestModule smartContractsProviderTestModuleParam) {
-    this.provideMockNodeApiInteractionServiceProvider =
+    this.provideNodeThriftApiExecServiceProvider =
         DoubleCheck.provider(
-            TestModule_ProvideMockNodeApiInteractionServiceFactory.create(testModuleParam));
+            TestModule_ProvideNodeThriftApiExecServiceFactory.create(testModuleParam));
+    this.provideMockNodeApiStoreTransactionServiceProvider =
+        DoubleCheck.provider(
+            TestModule_ProvideMockNodeApiStoreTransactionServiceFactory.create(
+                testModuleParam, provideNodeThriftApiExecServiceProvider));
     this.providesPermissionsManagerProvider =
         DoubleCheck.provider(TestModule_ProvidesPermissionsManagerFactory.create(testModuleParam));
     this.provideContractExecutorServiceProvider =
         DoubleCheck.provider(
             TestModule_ProvideContractExecutorServiceFactory.create(
                 testModuleParam,
-                provideMockNodeApiInteractionServiceProvider,
+                provideMockNodeApiStoreTransactionServiceProvider,
                 providesPermissionsManagerProvider));
     this.provideSmartContractTestDataMapProvider =
         DoubleCheck.provider(
@@ -76,6 +91,11 @@ public final class DaggerTestComponent implements TestComponent {
   @Override
   public void inject(ContractExecutorHandlerTest contractExecutorHandlerTest) {
     injectContractExecutorHandlerTest(contractExecutorHandlerTest);
+  }
+
+  @Override
+  public void inject(NodeApiExecInteractionServiceImplTest nodeApiExecInteractionServiceImplTest) {
+    injectNodeApiExecInteractionServiceImplTest(nodeApiExecInteractionServiceImplTest);
   }
 
   @CanIgnoreReturnValue
@@ -97,6 +117,14 @@ public final class DaggerTestComponent implements TestComponent {
         instance, provideContractExecutorServiceProvider.get());
     ContractExecutorHandlerTest_MembersInjector.injectContractExecutorHandler(
         instance, getContractExecutorHandler());
+    return instance;
+  }
+
+  @CanIgnoreReturnValue
+  private NodeApiExecInteractionServiceImplTest injectNodeApiExecInteractionServiceImplTest(
+      NodeApiExecInteractionServiceImplTest instance) {
+    NodeApiExecInteractionServiceImplTest_MembersInjector.injectNodeApiExecService(
+        instance, getNodeApiExecInteractionServiceImpl());
     return instance;
   }
 

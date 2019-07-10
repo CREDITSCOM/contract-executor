@@ -3,17 +3,20 @@ package pojo;
 import com.credits.general.thrift.generated.APIResponse;
 import com.credits.general.thrift.generated.Variant;
 
+import java.util.List;
 import java.util.Objects;
 
 public class SmartContractMethodResult {
     public final APIResponse status;
     public final Variant result;
     public final long spentCpuTime;
+    public final List<EmitTransactionData> emittedTransactions;
 
-    public SmartContractMethodResult(APIResponse status, Variant result, long spentCpuTime) {
+    public SmartContractMethodResult(APIResponse status, Variant result, long spentCpuTime, List<EmitTransactionData> emittedTransactions) {
         this.status = status;
         this.result = result;
         this.spentCpuTime = spentCpuTime;
+        this.emittedTransactions = emittedTransactions;
     }
 
     @Override

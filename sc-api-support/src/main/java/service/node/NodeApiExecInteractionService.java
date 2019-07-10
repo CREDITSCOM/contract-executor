@@ -12,7 +12,10 @@ public interface NodeApiExecInteractionService {
 
     GetSmartCodeResultData getSmartCode(long accessId, String addressBase58);
 
+    @Deprecated
     void sendTransaction(long accessId, String source, String target, double amount, double fee, byte[] userData);
+
+    void sendTransaction(long accessId, String source, String target, double amount, byte[] userData);
 
     int getWalletId(long accessId, String addressBase58);
 

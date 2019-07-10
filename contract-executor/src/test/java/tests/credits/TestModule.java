@@ -3,10 +3,13 @@ package tests.credits;
 import com.credits.secure.PermissionsManager;
 import com.credits.secure.Sandbox;
 import com.credits.service.contract.ContractExecutorServiceImpl;
+import com.credits.service.node.apiexec.NodeApiExecInteractionServiceImpl;
+import com.credits.service.node.apiexec.NodeThriftApiExec;
 import dagger.Module;
 import dagger.Provides;
 import service.executor.ContractExecutorService;
 import service.node.NodeApiExecInteractionService;
+import service.node.NodeApiExecStoreTransactionService;
 
 import javax.inject.Singleton;
 import java.io.FilePermission;
@@ -22,7 +25,7 @@ public class TestModule {
 
     @Provides
     @Singleton
-    ContractExecutorService provideContractExecutorService(NodeApiExecInteractionService nodeApi, PermissionsManager permissionsManager) {
+    ContractExecutorService provideContractExecutorService(NodeApiExecStoreTransactionService nodeApi, PermissionsManager permissionsManager) {
         return new ContractExecutorServiceImpl(nodeApi, permissionsManager);
     }
 
@@ -30,6 +33,18 @@ public class TestModule {
     @Singleton
     NodeApiExecInteractionService provideMockNodeApiInteractionService() {
         return mock(NodeApiExecInteractionService.class);
+    }
+
+    @Provides
+    @Singleton
+    NodeApiExecStoreTransactionService provideMockNodeApiStoreTransactionService(NodeThriftApiExec nodeThriftApiExec) {
+        return spy(new NodeApiExecInteractionServiceImpl(nodeThriftApiExec));
+    }
+
+    @Provides
+    @Singleton
+    NodeThriftApiExec provideNodeThriftApiExecService(){
+        return mock(NodeThriftApiExec.class);
     }
 
     @Singleton

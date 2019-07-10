@@ -20,8 +20,10 @@ import java.util.Map;
 
 import static com.credits.general.thrift.generated.Variant._Fields.V_STRING;
 import static com.credits.general.util.GeneralConverter.*;
+import static com.credits.utils.ApiExecClientPojoConverter.convertEmittedTransactionDataToEmittedTransaction;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
 import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 
@@ -84,11 +86,14 @@ public class ExecuteByteCodeSession {
         final var result = ceService.deploySmartContract(deploySession);
         final var firstResult = result.executeResults.get(0);
         final var binaryContractAddress = ByteBuffer.wrap(decodeFromBASE58(contractAddressBase58));
+        final var emittedTransactions = convertEmittedTransactionDataToEmittedTransaction(firstResult.emittedTransactions);
         return List.of(new SetterMethodResult(firstResult.status,
                                               firstResult.result,
                                               Map.of(binaryContractAddress, ByteBuffer.wrap(result.newContractState)),
+                                              emittedTransactions,
                                               firstResult.spentCpuTime));
     }
+
 
     private List<SetterMethodResult> executeMethodsSequential() {
         return methodHeaders.stream()
@@ -99,12 +104,18 @@ public class ExecuteByteCodeSession {
 
                                 final var executionResult = ceService.executeSmartContract(createInvokeMethodSession(methodHeader));
                                 final var firstResult = executionResult.executeResults.get(0);
+                                final var emittedTransactions = convertEmittedTransactionDataToEmittedTransaction(firstResult.emittedTransactions);
                                 results.add(new SetterMethodResult(firstResult.status,
                                                                    firstResult.result,
                                                                    wrapMapArgsToByteBuffer(executionResult.externalSmartContracts),
+                                                                   emittedTransactions,
                                                                    firstResult.spentCpuTime));
                             } catch (Throwable e) {
-                                results.add(new SetterMethodResult(failureApiResponse(e), new Variant(V_STRING, e.getMessage()), emptyMap(), 0));
+                                results.add(new SetterMethodResult(failureApiResponse(e),
+                                                                   new Variant(V_STRING, e.getMessage()),
+                                                                   emptyMap(),
+                                                                   emptyList(),
+                                                                   0));
                             }
                             return results;
                         },
