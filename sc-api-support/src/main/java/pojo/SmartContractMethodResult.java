@@ -26,12 +26,13 @@ public class SmartContractMethodResult {
         SmartContractMethodResult that = (SmartContractMethodResult) o;
         return spentCpuTime == that.spentCpuTime &&
                 Objects.equals(status, that.status) &&
-                Objects.equals(result, that.result);
+                Objects.equals(result, that.result) &&
+                Objects.equals(emittedTransactions, that.emittedTransactions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(status, result, spentCpuTime);
+        return Objects.hash(status, result, spentCpuTime, emittedTransactions);
     }
 
     @Override

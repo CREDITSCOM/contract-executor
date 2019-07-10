@@ -2,6 +2,8 @@ package com.credits.service.contract;
 
 import com.credits.general.thrift.generated.Variant;
 
+import java.util.Objects;
+
 import static com.credits.general.thrift.generated.Variant._Fields.V_STRING;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 
@@ -49,5 +51,33 @@ class MethodResult {
 
     public long getThreadId() {
         return threadId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MethodResult that = (MethodResult) o;
+        return spentCpuTime == that.spentCpuTime &&
+                threadId == that.threadId &&
+                Objects.equals(returnValue, that.returnValue) &&
+                Objects.equals(exception, that.exception) &&
+                Objects.equals(invokedObject, that.invokedObject);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(spentCpuTime, returnValue, exception, threadId, invokedObject);
+    }
+
+    @Override
+    public String toString() {
+        return "MethodResult{" +
+                "spentCpuTime=" + spentCpuTime +
+                ", returnValue=" + returnValue +
+                ", exception=" + exception +
+                ", threadId=" + threadId +
+                ", invokedObject=" + invokedObject +
+                '}';
     }
 }
