@@ -7,6 +7,7 @@ import org.hamcrest.collection.IsMapContaining;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import pojo.EmitTransactionData;
 import pojo.ReturnValue;
 import tests.credits.service.ContractExecutorTestContext;
 
@@ -26,8 +27,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static tests.credits.TestContract.*;
 
 public class ContractExecutorTest extends ContractExecutorTestContext {
@@ -99,7 +99,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         final var contractState = deploySmartContract(smartContract).newContractState;
 
         executeSmartContract(smartContract, contractState, "createTransactionIntoContract", "10");
-        verify(mockNodeApiExecService)
+        verify(spyNodeApiExecService)
                 .sendTransaction(accessId, initiatorAddressBase58, smartContract.getContractAddressBase58(), 10, 1.0, new byte[0]);
     }
 
@@ -120,7 +120,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         final var contractState = deploySmartContract(smartContract).newContractState;
         final var expectedBigDecimalValue = new BigDecimal("19.5");
 
-        when(mockNodeApiExecService.getBalance(anyString())).thenReturn(expectedBigDecimalValue);
+        when(spyNodeApiExecService.getBalance(anyString())).thenReturn(expectedBigDecimalValue);
 
         final var balance = toObject(getFirstReturnValue(executeSmartContract(smartContract, contractState, "getBalanceTest")));
         assertThat(balance, is(expectedBigDecimalValue));
@@ -179,7 +179,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         final var contractState = deploySmartContract(smartContract).newContractState;
         final var expectedSeed = new byte[]{0xB, 0xA, 0xB, 0xE};
 
-        when(mockNodeApiExecService.getSeed(anyLong())).thenReturn(expectedSeed);
+        when(spyNodeApiExecService.getSeed(anyLong())).thenReturn(expectedSeed);
         final var seed = getFirstReturnValue(executeSmartContract(smartContract, contractState, "testGetSeed")).getV_byte_array();
 
         assertThat(seed, is(expectedSeed));
@@ -277,9 +277,37 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
 
         final var result = ceService.buildContractClass(smartContract.getByteCodeObjectDataList());
 
-        assertThat(result.size(), greaterThan(0));
+        assertThat(result.size(), is(2));
         assertThat(result.get(0).getName(), is("SmartContractV0TestImpl$Geo"));
         assertThat(result.get(1).getName(), is("SmartContractV0TestImpl"));
+    }
+
+    @Test
+    @DisplayName("emitted transactions list must be returned into each execution result")
+    void returnEmittedTransactions() {
+        final var smartContract = smartContractsRepository.get(SmartContractV2TestImpl);
+        final var contractState = deploySmartContract(smartContract).newContractState;
+
+        final var result = executeSmartContract(smartContract, contractState, "createTwoTransactions");
+        final var emittedTransactions = result.executeResults.get(0).emittedTransactions;
+
+        final var firstTransaction = new EmitTransactionData(initiatorAddressBase58, smartContract.getContractAddressBase58(), 10);
+        final var secondTransaction = new EmitTransactionData(initiatorAddressBase58, smartContract.getContractAddressBase58(), 0.01,
+                                                              "hello".getBytes());
+        assertThat(emittedTransactions.size(), is(2));
+        assertThat(emittedTransactions.get(0), is(firstTransaction));
+        assertThat(emittedTransactions.get(1), is(secondTransaction));
+    }
+
+    @Test
+    @DisplayName("takeAwayEmittedTransactions must be call even exception occurred")
+    void takeAwayTransactionsMustBeCalledAlways() {
+        final var smartContract = smartContractsRepository.get(SmartContractV2TestImpl);
+        final var contractState = deploySmartContract(smartContract).newContractState;
+
+        executeSmartContract(smartContract, contractState, "createTwoTransactionThenThrowException");
+
+        verify(spyNodeApiExecService, times(2)).takeAwayEmittedTransactions(anyLong());
     }
 
     @Test

@@ -3,14 +3,13 @@ package tests.credits.service;
 import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ApiResponseData;
 import com.credits.general.thrift.generated.Variant;
-import com.credits.scapi.v0.SmartContract;
 import pojo.ExternalSmartContract;
 import pojo.ReturnValue;
 import pojo.apiexec.SmartContractGetResultData;
 import pojo.session.DeployContractSession;
 import pojo.session.InvokeMethodSession;
 import service.executor.ContractExecutorService;
-import service.node.NodeApiExecInteractionService;
+import service.node.NodeApiExecStoreTransactionService;
 import tests.credits.DaggerTestComponent;
 import tests.credits.SmartContactTestData;
 import tests.credits.TestContract;
@@ -22,9 +21,10 @@ import java.util.Map;
 
 import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
 import static com.credits.general.util.Utils.rethrowUnchecked;
+import static com.credits.service.BackwardCompatibilityService.allVersionsSmartContractClass;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static tests.credits.TestUtils.variantArrayOf;
 
 public abstract class ContractExecutorTestContext {
@@ -37,24 +37,21 @@ public abstract class ContractExecutorTestContext {
     protected ContractExecutorService ceService;
     @Inject
     protected Map<TestContract, SmartContactTestData> smartContractsRepository;
-
-    protected NodeApiExecInteractionService mockNodeApiExecService;
+    @Inject
+    protected NodeApiExecStoreTransactionService spyNodeApiExecService;
 
     protected void setUp() throws Exception {
         DaggerTestComponent.builder().build().inject(this);
-        ceService = spy(ceService);
-        mockNodeApiExecService = mock(NodeApiExecInteractionService.class);
-        initSmartContractStaticField("nodeApiService", mockNodeApiExecService);
-        initSmartContractStaticField("contractExecutorService", ceService);
         when(ceService.getSmartContractClassLoader()).thenReturn(byteCodeContractClassLoader);
     }
 
     private void initSmartContractStaticField(String fieldName, Object value) {
-        Class<?> contract = SmartContract.class;
-        rethrowUnchecked(() -> {
-            Field interactionService = contract.getDeclaredField(fieldName);
-            interactionService.setAccessible(true);
-            interactionService.set(null, value);
+        allVersionsSmartContractClass.forEach(contract -> {
+            rethrowUnchecked(() -> {
+                Field interactionService = contract.getDeclaredField(fieldName);
+                interactionService.setAccessible(true);
+                interactionService.set(null, value);
+            });
         });
     }
 
@@ -121,7 +118,7 @@ public abstract class ContractExecutorTestContext {
 
 
     protected void setNodeResponseGetSmartContractByteCode(SmartContactTestData contractTestData, byte[] contractState, boolean isCanModify) {
-        when(mockNodeApiExecService.getExternalSmartContractByteCode(anyLong(), anyString()))
+        when(spyNodeApiExecService.getExternalSmartContractByteCode(anyLong(), anyString()))
                 .thenReturn(new SmartContractGetResultData(
                         new ApiResponseData(SUCCESS, "success"),
                         contractTestData.getByteCodeObjectDataList(),

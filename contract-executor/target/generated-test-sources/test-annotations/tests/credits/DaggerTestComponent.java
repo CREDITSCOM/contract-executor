@@ -105,6 +105,8 @@ public final class DaggerTestComponent implements TestComponent {
         instance, provideContractExecutorServiceProvider.get());
     ContractExecutorTestContext_MembersInjector.injectSmartContractsRepository(
         instance, provideSmartContractTestDataMapProvider.get());
+    ContractExecutorTestContext_MembersInjector.injectSpyNodeApiExecService(
+        instance, provideMockNodeApiStoreTransactionServiceProvider.get());
     return instance;
   }
 

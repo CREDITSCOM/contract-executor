@@ -17,6 +17,10 @@ public class EmitTransactionData {
         this.userData = Optional.ofNullable(userData).orElse(new byte[0]);
     }
 
+    public EmitTransactionData(String source, String target, double amount) {
+        this(source, target, amount, new byte[0]);
+    }
+
     public String getSource() {
         return source;
     }

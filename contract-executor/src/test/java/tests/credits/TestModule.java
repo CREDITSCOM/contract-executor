@@ -8,7 +8,6 @@ import com.credits.service.node.apiexec.NodeThriftApiExec;
 import dagger.Module;
 import dagger.Provides;
 import service.executor.ContractExecutorService;
-import service.node.NodeApiExecInteractionService;
 import service.node.NodeApiExecStoreTransactionService;
 
 import javax.inject.Singleton;
@@ -26,13 +25,7 @@ public class TestModule {
     @Provides
     @Singleton
     ContractExecutorService provideContractExecutorService(NodeApiExecStoreTransactionService nodeApi, PermissionsManager permissionsManager) {
-        return new ContractExecutorServiceImpl(nodeApi, permissionsManager);
-    }
-
-    @Provides
-    @Singleton
-    NodeApiExecInteractionService provideMockNodeApiInteractionService() {
-        return mock(NodeApiExecInteractionService.class);
+        return spy(new ContractExecutorServiceImpl(nodeApi, permissionsManager));
     }
 
     @Provides
