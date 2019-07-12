@@ -6,12 +6,12 @@
 
     <artifactId>contract-executor</artifactId>
     <packaging>jar</packaging>
-    <version>0.8.2</version>
+    <version>0.8.3</version>
 
     <parent>
         <groupId>com.credits.executor</groupId>
         <artifactId>contract-executor-root</artifactId>
-        <version>0.8.2</version>
+        <version>0.8.3</version>
     </parent>
 
     <properties>
