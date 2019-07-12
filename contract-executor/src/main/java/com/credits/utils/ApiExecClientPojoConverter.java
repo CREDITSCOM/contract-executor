@@ -1,6 +1,6 @@
 package com.credits.utils;
 
-import com.credits.client.executor.thrift.generated.EmitedTransaction;
+import com.credits.client.executor.thrift.generated.EmittedTransaction;
 import com.credits.client.executor.thrift.generated.apiexec.SmartContractGetResult;
 import com.credits.general.pojo.ByteCodeObjectData;
 import com.credits.general.thrift.generated.ByteCodeObject;
@@ -42,13 +42,13 @@ public class ApiExecClientPojoConverter {
         return new ByteCodeObjectData(thriftStruct.getName(), thriftStruct.getByteCode());
     }
 
-    public static List<EmitedTransaction> convertEmittedTransactionDataToEmittedTransaction(List<EmitTransactionData> emittedTransactions) {
+    public static List<EmittedTransaction> convertEmittedTransactionDataToEmittedTransaction(List<EmitTransactionData> emittedTransactions) {
         return emittedTransactions.stream()
                 .map(et -> {
                     final var source = wrap(decodeFromBASE58(et.getSource()));
                     final var target = wrap(decodeFromBASE58(et.getTarget()));
                     final var amount = bigDecimalToAmount(BigDecimal.valueOf(et.getAmount()));
-                    final var emittedTransaction = new EmitedTransaction(source, target, amount);
+                    final var emittedTransaction = new EmittedTransaction(source, target, amount);
                     emittedTransaction.setUserData(et.getUserData());
                     return emittedTransaction;
                 }).collect(Collectors.toList());
