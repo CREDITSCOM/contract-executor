@@ -48,10 +48,7 @@ public abstract class SmartContract implements Serializable {
     }
 
     final protected void sendTransaction(String from, String to, double amount, double fee, byte... userData) {
-        callService(() -> {
-            nodeApiService.sendTransaction(accessId, from, to, amount, fee, userData);
-            return null;
-        });
+        nodeApiService.sendTransaction(accessId, from, to, amount, fee, userData);
     }
 
     final protected Object invokeExternalContract(String contractAddress, String method, Object... params) {
@@ -92,7 +89,7 @@ public abstract class SmartContract implements Serializable {
         if (!usedContract.getContractData().isStateCanModify() && !Arrays.equals(
             usedContract.getContractData().getContractState(),
             returnValue.newContractState)) {
-            throw new ContractExecutorException("smart contract \"" + contractAddress + "\" can't be modify");
+            throw new ContractExecutorException("smart executor \"" + contractAddress + "\" can't be modify");
         }
         usedContract.getContractData().setContractState(returnValue.newContractState);
 

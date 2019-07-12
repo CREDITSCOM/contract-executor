@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
 import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
@@ -56,7 +57,8 @@ public class ContractExecutorServiceUtils {
             Object[] argValues = castValues(argTypes, params, classLoader);
             return new MethodData(method, argTypes, argValues);
         } else {
-            throw new ContractExecutorException("Cannot find a method by name and parameters specified");
+            throw new ContractExecutorException("Cannot find a method by name and parameters specified. Signature: " + methodName + "("
+                                                        + stream(argTypes).map(Class::getName).collect(Collectors.joining(", ")) + ")");
         }
     }
 

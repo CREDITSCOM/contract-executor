@@ -5,6 +5,7 @@ import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
 import service.executor.ContractExecutorService;
+import tests.credits.SmartContractsProviderTestModule;
 
 import javax.inject.Singleton;
 
@@ -28,7 +29,7 @@ public class CEHandlerTestModule{
 
 
 @Singleton
-@Component(modules = CEHandlerTestModule.class)
+@Component(modules = {CEHandlerTestModule.class, SmartContractsProviderTestModule.class})
 interface CEHandlerTestComponent {
    void inject(ContractExecutorHandlerTest contractExecutorHandlerTest);
 }

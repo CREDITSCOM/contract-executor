@@ -3,10 +3,12 @@ package tests.credits;
 import com.credits.secure.PermissionsManager;
 import com.credits.secure.Sandbox;
 import com.credits.service.contract.ContractExecutorServiceImpl;
+import com.credits.service.node.apiexec.NodeApiExecInteractionServiceImpl;
+import com.credits.service.node.apiexec.NodeThriftApiExec;
 import dagger.Module;
 import dagger.Provides;
 import service.executor.ContractExecutorService;
-import service.node.NodeApiExecInteractionService;
+import service.node.NodeApiExecStoreTransactionService;
 
 import javax.inject.Singleton;
 import java.io.FilePermission;
@@ -22,19 +24,25 @@ public class TestModule {
 
     @Provides
     @Singleton
-    public ContractExecutorService provideContractExecutorService(NodeApiExecInteractionService nodeApi, PermissionsManager permissionsManager) {
-        return new ContractExecutorServiceImpl(nodeApi, permissionsManager);
+    ContractExecutorService provideContractExecutorService(NodeApiExecStoreTransactionService nodeApi, PermissionsManager permissionsManager) {
+        return spy(new ContractExecutorServiceImpl(nodeApi, permissionsManager));
     }
 
     @Provides
     @Singleton
-    public NodeApiExecInteractionService provideMockNodeApiInteractionService() {
-        return mock(NodeApiExecInteractionService.class);
+    NodeApiExecStoreTransactionService provideMockNodeApiStoreTransactionService(NodeThriftApiExec nodeThriftApiExec) {
+        return spy(new NodeApiExecInteractionServiceImpl(nodeThriftApiExec));
+    }
+
+    @Provides
+    @Singleton
+    NodeThriftApiExec provideNodeThriftApiExecService(){
+        return mock(NodeThriftApiExec.class);
     }
 
     @Singleton
     @Provides
-    public PermissionsManager providesPermissionsManager() {
+    PermissionsManager providesPermissionsManager() {
         PermissionsManager permissionsManager = spy(PermissionsManager.class);
         doAnswer(invocation -> {
             final Class<?> contractClass = invocation.getArgument(0);

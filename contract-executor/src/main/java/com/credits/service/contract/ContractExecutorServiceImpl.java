@@ -21,6 +21,7 @@ import pojo.session.DeployContractSession;
 import pojo.session.InvokeMethodSession;
 import service.executor.ContractExecutorService;
 import service.node.NodeApiExecInteractionService;
+import service.node.NodeApiExecStoreTransactionService;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -31,7 +32,7 @@ import static com.credits.general.serialize.Serializer.deserialize;
 import static com.credits.general.serialize.Serializer.serialize;
 import static com.credits.service.BackwardCompatibilityService.allVersionsSmartContractClass;
 import static com.credits.thrift.utils.ContractExecutorUtils.compileSmartContractByteCode;
-import static com.credits.thrift.utils.ContractExecutorUtils.getRootClass;
+import static com.credits.thrift.utils.ContractExecutorUtils.findRootClass;
 import static com.credits.utils.ContractExecutorServiceUtils.*;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
@@ -41,37 +42,59 @@ import static java.util.stream.Collectors.toList;
 public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     private final PermissionsManager permissionManager;
+    private final NodeApiExecStoreTransactionService nodeApiExecService;
 
     @Inject
-    public ContractExecutorServiceImpl(NodeApiExecInteractionService nodeApiExecService, PermissionsManager permissionManager) {
+    public ContractExecutorServiceImpl(NodeApiExecStoreTransactionService nodeApiExecService, PermissionsManager permissionManager) {
         this.permissionManager = permissionManager;
+        this.nodeApiExecService = nodeApiExecService;
         allVersionsSmartContractClass.forEach(contract -> initStaticContractFields(nodeApiExecService, contract));
         permissionManager.grantAllPermissions(NodeApiExecInteractionServiceImpl.class);
     }
 
     @Override
     public ReturnValue deploySmartContract(DeployContractSession session) throws ContractExecutorException {
-        final var contractClass = compileClassAndDropPermissions(session.byteCodeObjectDataList, getSmartContractClassLoader());
+        final var contractClass = findRootClass(compileClassesAndDropPermissions(session.byteCodeObjectDataList, getSmartContractClassLoader()));
         final var methodResult = new Deployer(session, contractClass).deploy();
         final var newContractState = methodResult.getInvokedObject() != null ? serialize(methodResult.getInvokedObject()) : new byte[0];
+        final var emittedTransactions = nodeApiExecService.takeAwayEmittedTransactions(methodResult.getThreadId());
         return new ReturnValue(newContractState,
                                singletonList(new SmartContractMethodResult(methodResult.getException() != null
                                                                                    ? failureApiResponse(methodResult.getException())
                                                                                    : SUCCESS_API_RESPONSE,
                                                                            methodResult.getReturnValue(),
-                                                                           methodResult.getSpentCpuTime())),
+                                                                           methodResult.getSpentCpuTime(),
+                                                                           emittedTransactions)),
                                session.usedContracts);
     }
 
     @Override
     public ReturnValue executeSmartContract(InvokeMethodSession session) throws ContractExecutorException {
         final var contractClassLoader = getSmartContractClassLoader();
-        final var contractClass = compileClassAndDropPermissions(session.byteCodeObjectDataList, contractClassLoader);
+        final var contractClass = findRootClass(compileClassesAndDropPermissions(session.byteCodeObjectDataList, contractClassLoader));
         final var instance = deserialize(session.contractState, contractClassLoader);
 
         initNonStaticContractFields(session, contractClass, instance);
         addThisContractToUsedContracts(session, instance);
         return executeContractMethod(session, instance);
+    }
+
+    private ReturnValue executeContractMethod(InvokeMethodSession session, Object contractInstance) {
+        final var executor = new MethodExecutor(session, contractInstance);
+        final var methodResults = executor.execute();
+        return new ReturnValue(serialize(executor.getSmartContractObject()),
+                               methodResults.stream()
+                                       .map(mr -> mr.getException() == null
+                                               ? new SmartContractMethodResult(SUCCESS_API_RESPONSE,
+                                                                               mr.getReturnValue(),
+                                                                               mr.getSpentCpuTime(),
+                                                                               nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId()))
+                                               : new SmartContractMethodResult(failureApiResponse(mr.getException()),
+                                                                               mr.getReturnValue(),
+                                                                               mr.getSpentCpuTime(),
+                                                                               nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId())))
+                                       .collect(toList()),
+                               session.usedContracts);
     }
 
     @Override
@@ -85,7 +108,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
         if (instance == null) {
             requireNonNull(classLoader, "classLoader is null");
-            final var contractClass = getRootClass(compileSmartContractByteCode(session.byteCodeObjectDataList, classLoader));
+            final var contractClass = findRootClass(compileSmartContractByteCode(session.byteCodeObjectDataList, classLoader));
             instance = deserialize(session.contractState, classLoader);
             initNonStaticContractFields(session, contractClass, instance);
             usedContracts.get(session.contractAddress).setInstance(instance);
@@ -94,25 +117,18 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         return executeContractMethod(session, instance);
     }
 
-    private ReturnValue executeContractMethod(InvokeMethodSession session, Object contractInstance) {
-        final var executor = new MethodExecutor(session, contractInstance);
-        final var methodResults = executor.execute();
-        return new ReturnValue(serialize(executor.getSmartContractObject()),
-                               methodResults.stream()
-                                       .map(mr -> mr.getException() == null
-                                               ? new SmartContractMethodResult(SUCCESS_API_RESPONSE, mr.getReturnValue(), mr.getSpentCpuTime())
-                                               : new SmartContractMethodResult(failureApiResponse(mr.getException()),
-                                                                               mr.getReturnValue(),
-                                                                               mr.getSpentCpuTime()))
-                                       .collect(toList()),
-                               session.usedContracts);
+    @Override
+    public List<MethodDescriptionData> getContractMethods(List<ByteCodeObjectData> byteCodeObjectDataList) {
+        requireNonNull(byteCodeObjectDataList, "bytecode of executor class is null");
+
+        final var contractClass = findRootClass(compileSmartContractByteCode(byteCodeObjectDataList, getSmartContractClassLoader()));
+        return createMethodDescriptionListByClass(contractClass);
     }
 
     @Override
-    public List<MethodDescriptionData> getContractsMethods(List<ByteCodeObjectData> byteCodeObjectDataList) {
-        requireNonNull(byteCodeObjectDataList, "bytecode of contract class is null");
+    public List<MethodDescriptionData> getContractMethods(Class<?> contractClass) throws ContractExecutorException {
+        requireNonNull(contractClass, "executor class is null");
 
-        final var contractClass = getRootClass(compileSmartContractByteCode(byteCodeObjectDataList, getSmartContractClassLoader()));
         return createMethodDescriptionListByClass(contractClass);
     }
 
@@ -129,12 +145,19 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     }
 
     @Override
-    public List<ByteCodeObjectData> compileClass(String sourceCode) throws ContractExecutorException, CompilationException {
-        requireNonNull(sourceCode, "sourceCode of contract class is null");
-        if (sourceCode.isEmpty()) throw new ContractExecutorException("sourceCode of contract class is empty");
+    public List<ByteCodeObjectData> compileContractClass(String sourceCode) throws ContractExecutorException, CompilationException {
+        requireNonNull(sourceCode, "sourceCode of executor class is null");
+        if (sourceCode.isEmpty()) throw new ContractExecutorException("sourceCode of executor class is empty");
 
         final var compilationPackage = InMemoryCompiler.compileSourceCode(sourceCode);
-        return GeneralConverter.compilationPackageToByteCodeObjects(compilationPackage);
+        return GeneralConverter.compilationPackageToByteCodeObjectsData(compilationPackage);
+    }
+
+    @Override
+    public List<Class<?>> buildContractClass(List<ByteCodeObjectData> byteCodeObjectDataList) {
+        requireNonNull(byteCodeObjectDataList, "bytecode of executor class is null");
+
+        return compileClassesAndDropPermissions(byteCodeObjectDataList, getSmartContractClassLoader());
     }
 
 
@@ -149,13 +172,11 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         session.usedContracts.put(session.contractAddress, usedContract);
     }
 
-    private Class<?> compileClassAndDropPermissions(List<ByteCodeObjectData> byteCodeObjectList, ByteCodeContractClassLoader classLoader)
+    private List<Class<?>> compileClassesAndDropPermissions(List<ByteCodeObjectData> byteCodeObjectList, ByteCodeContractClassLoader classLoader)
     throws ContractExecutorException {
         return compileSmartContractByteCode(byteCodeObjectList, classLoader).stream()
                 .peek(permissionManager::dropSmartContractRights)
-                .filter(clazz -> !clazz.getName().contains("$"))
-                .findAny()
-                .orElseThrow(() -> new CompilationException("contract class not compiled"));
+                .collect(toList());
     }
 
     private void initStaticContractFields(NodeApiExecInteractionService nodeApiExecService, Class<?> contract) {

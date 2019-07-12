@@ -4,8 +4,9 @@ import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.util.compiler.CompilationException;
 import com.credits.general.util.compiler.InMemoryCompiler;
 import com.credits.general.util.compiler.model.CompilationUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import tests.credits.TestUtils;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -15,12 +16,12 @@ public class BytecodeContractByteCodeContractClassLoaderTest {
     String sourceCode;
     CompilationUnit compilationUnit;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         sourceCode =
-            "public class MySmartContract {\n" +
+            "public class SomeClass {\n" +
                 "\n" +
-                "    public MySmartContract() {\n" +
+                "    public SomeClass() {\n" +
                 "        System.out.println(\"Hello World!!\"); ;\n" +
                 "    }\n" +
                 "}";
@@ -30,7 +31,7 @@ public class BytecodeContractByteCodeContractClassLoaderTest {
     @Test
     public void buildClassTest() throws Exception {
         Class clazz = new ByteCodeContractClassLoader().loadClass(compilationUnit.getName(), compilationUnit.getByteCode());
-        assertNotNull(clazz.newInstance());
+        assertNotNull(TestUtils.buildInstanceUseFirstConstructor(clazz));
     }
 
     @Test
@@ -43,9 +44,9 @@ public class BytecodeContractByteCodeContractClassLoaderTest {
     @Test
     public void loadOtherClass() throws CompilationException {
         sourceCode =
-            "public class MySmartContract {\n" +
+            "public class SocketServer {\n" +
             "\n" +
-            "    public MySmartContract() {\n" +
+            "    public SocketServer() {\n" +
             "try {\n" +
             " new java.net.ServerSocket(5000);\n" +
             "} catch (java.io.IOException e) {\n" +

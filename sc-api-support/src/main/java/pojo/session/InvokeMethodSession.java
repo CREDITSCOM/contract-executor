@@ -26,10 +26,10 @@ public class InvokeMethodSession extends DeployContractSession {
     }
 
     private void validateArguments(byte[] contractState, String methodName) {
-        requireNonNull(contractState, "contract state is null");
+        requireNonNull(contractState, "executor state is null");
         requireNonNull(methodName, "method name is null");
         if (contractState.length == 0) {
-            throw new ContractExecutorException("contract state is empty");
+            throw new ContractExecutorException("executor state is empty");
         } else if (methodName.isEmpty()) {
             throw new ContractExecutorException("method name is empty");
         }

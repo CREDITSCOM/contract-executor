@@ -39,25 +39,22 @@ public abstract class SmartContract extends SmartContractApi {
 
     public SmartContract() {
         SmartContractConstants contractConstants =
-            SmartContractConstants.getSessionSmartContractConstants(Thread.currentThread().getId());
+                SmartContractConstants.getSessionSmartContractConstants(Thread.currentThread().getId());
         initiator = contractConstants.initiator;
         accessId = contractConstants.accessId;
         contractAddress = contractConstants.contractAddress;
         usedContracts = contractConstants.usedContracts;
     }
 
-    final protected void sendTransaction(String from, String to, double amount, double fee, byte... userData) {
-        callService(() -> {
-            nodeApiService.sendTransaction(accessId, from, to, amount, fee, userData);
-            return null;
-        });
+    final protected void sendTransaction(String from, String to, double amount, byte... userData) {
+        nodeApiService.sendTransaction(accessId, from, to, amount, userData);
     }
 
     final protected Object invokeExternalContract(String contractAddress, String method, Object... params) {
         if(method.equals("payable")) throw new ContractExecutorException("payable method cannot be called");
         ExternalSmartContract usedContract = usedContracts.containsKey(contractAddress)
-            ? usedContracts.get(contractAddress)
-            : new ExternalSmartContract(callService(() -> nodeApiService.getExternalSmartContractByteCode(accessId, contractAddress)));
+                ? usedContracts.get(contractAddress)
+                : new ExternalSmartContract(callService(() -> nodeApiService.getExternalSmartContractByteCode(accessId, contractAddress)));
         usedContracts.put(contractAddress, usedContract);
 
         Variant[][] variantParams = null;
@@ -70,28 +67,28 @@ public abstract class SmartContract extends SmartContractApi {
         }
 
         final ReturnValue returnValue = contractExecutorService.executeExternalSmartContract(
-            new InvokeMethodSession(
-                accessId,
-                initiator,
-                contractAddress,
-                usedContract.getContractData().getByteCodeObjects(),
-                usedContract.getContractData().getContractState(),
-                method,
-                variantParams,
-                MAX_VALUE),
-            usedContracts,
-            (ByteCodeContractClassLoader) getClass().getClassLoader());
+                new InvokeMethodSession(
+                        accessId,
+                        initiator,
+                        contractAddress,
+                        usedContract.getContractData().getByteCodeObjects(),
+                        usedContract.getContractData().getContractState(),
+                        method,
+                        variantParams,
+                        MAX_VALUE),
+                usedContracts,
+                (ByteCodeContractClassLoader) getClass().getClassLoader());
 
         final APIResponse returnStatus = returnValue.executeResults.get(0).status;
         if (returnStatus.code == FAILURE.code) {
             throw new ExternalSmartContractException(
-                returnStatus.message + ". Contract address: " + contractAddress + ". Method: " + method + ". Args: " + Arrays.toString(params));
+                    returnStatus.message + ". Contract address: " + contractAddress + ". Method: " + method + ". Args: " + Arrays.toString(params));
         }
 
         if (!usedContract.getContractData().isStateCanModify() && !Arrays.equals(
-            usedContract.getContractData().getContractState(),
-            returnValue.newContractState)) {
-            throw new ContractExecutorException("smart contract \"" + contractAddress + "\" can't be modify");
+                usedContract.getContractData().getContractState(),
+                returnValue.newContractState)) {
+            throw new ContractExecutorException("smart executor \"" + contractAddress + "\" can't be modify");
         }
         usedContract.getContractData().setContractState(returnValue.newContractState);
 

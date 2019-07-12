@@ -1,8 +1,6 @@
 package com.credits.thrift;
 
 import com.credits.client.executor.thrift.generated.*;
-import com.credits.general.pojo.MethodDescriptionData;
-import com.credits.general.thrift.generated.APIResponse;
 import com.credits.general.thrift.generated.ByteCodeObject;
 import com.credits.general.thrift.generated.ClassObject;
 import com.credits.general.thrift.generated.Variant;
@@ -21,10 +19,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.credits.general.pojo.ApiResponseCode.FAILURE;
 import static com.credits.general.util.GeneralConverter.*;
 import static com.credits.ioc.Injector.INJECTOR;
-import static com.credits.thrift.utils.ContractExecutorUtils.validateVersion;
+import static com.credits.thrift.TokenStandardId.NOT_A_TOKEN;
+import static com.credits.thrift.utils.ContractExecutorUtils.*;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
 import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
 import static java.util.Collections.emptyList;
@@ -66,7 +64,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
             final var session = new ExecuteByteCodeSession(ceService, accessId, initiatorAddress, invokedContract, methodHeaders, executionTime);
             executeByteCodeResult = session.perform();
         } catch (Throwable e) {
-            executeByteCodeResult = new ExecuteByteCodeResult(failureApiResponse(e), emptyList(), emptyMap());
+            executeByteCodeResult = new ExecuteByteCodeResult(failureApiResponse(e), emptyList());
         }
 
         logger.debug("--> {}", executeByteCodeResult);
@@ -120,21 +118,20 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
             byteCodeMultipleResult = new ExecuteByteCodeMultipleResult(SUCCESS_API_RESPONSE, null);
             validateVersion(version);
 
-            ReturnValue returnValue =
-                    classObject.instance == null || classObject.instance.array().length == 0
-                            ? ceService.deploySmartContract(new DeployContractSession(accessId,
-                                                                                      encodeToBASE58(initiatorAddress.array()),
-                                                                                      encodeToBASE58(invokedContract.contractAddress.array()),
-                                                                                      byteCodeObjectsToByteCodeObjectsData(classObject.byteCodeObjects),
-                                                                                      executionTime))
-                            : ceService.executeSmartContract(new InvokeMethodSession(accessId,
-                                                                                     encodeToBASE58(initiatorAddress.array()),
-                                                                                     encodeToBASE58(invokedContract.contractAddress.array()),
-                                                                                     byteCodeObjectsToByteCodeObjectsData(classObject.byteCodeObjects),
-                                                                                     classObject.instance.array(),
-                                                                                     method,
-                                                                                     paramsArray,
-                                                                                     executionTime));
+            ReturnValue returnValue = classObject.instance == null || classObject.instance.array().length == 0
+                    ? ceService.deploySmartContract(new DeployContractSession(accessId,
+                                                                              encodeToBASE58(initiatorAddress.array()),
+                                                                              encodeToBASE58(invokedContract.contractAddress.array()),
+                                                                              byteCodeObjectsToByteCodeObjectsData(classObject.byteCodeObjects),
+                                                                              executionTime))
+                    : ceService.executeSmartContract(new InvokeMethodSession(accessId,
+                                                                             encodeToBASE58(initiatorAddress.array()),
+                                                                             encodeToBASE58(invokedContract.contractAddress.array()),
+                                                                             byteCodeObjectsToByteCodeObjectsData(classObject.byteCodeObjects),
+                                                                             classObject.instance.array(),
+                                                                             method,
+                                                                             paramsArray,
+                                                                             executionTime));
 
             byteCodeMultipleResult.results = returnValue.executeResults.stream().map(rv -> {
                 final GetterMethodResult getterMethodResult = new GetterMethodResult(rv.status);
@@ -160,13 +157,16 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
                          compilationUnits.size(),
                          version);
             validateVersion(version);
-            List<MethodDescriptionData> contractsMethods =
-                    ceService.getContractsMethods(byteCodeObjectToByteCodeObjectData(compilationUnits));
+            final var byteCodeObjects = byteCodeObjectsToByteCodeObjectsData(compilationUnits);
+            final var contractClass = findRootClass(ceService.buildContractClass(byteCodeObjects));
+            final var tokenStandard = defineTokenStandard(contractClass);
+            final var contractMethods = ceService.getContractMethods(byteCodeObjects).stream()
+                    .map(GeneralConverter::convertMethodDataToMethodDescription)
+                    .collect(toList());
 
-            result = new GetContractMethodsResult(SUCCESS_API_RESPONSE,
-                                                  contractsMethods.stream().map(GeneralConverter::convertMethodDataToMethodDescription).collect(toList()));
+            result = new GetContractMethodsResult(SUCCESS_API_RESPONSE, contractMethods, tokenStandard);
         } catch (Throwable e) {
-            result = new GetContractMethodsResult(failureApiResponse(e), emptyList());
+            result = new GetContractMethodsResult(failureApiResponse(e), emptyList(), NOT_A_TOKEN.getId());
         }
         logger.debug("--> {}", result);
         return result;
@@ -203,7 +203,8 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         try {
             logger.debug("<-- compileBytecode(\nsourceCode = {},\nversion = {})", sourceCode, version);
             validateVersion(version);
-            result = new CompileSourceCodeResult(SUCCESS_API_RESPONSE, byteCodeObjectsDataToByteCodeObjects(ceService.compileClass(sourceCode)));
+            result = new CompileSourceCodeResult(SUCCESS_API_RESPONSE,
+                                                 byteCodeObjectsDataToByteCodeObjects(ceService.compileContractClass(sourceCode)));
         } catch (CompilationException e) {
             result = new CompileSourceCodeResult();
             result.setStatus(failureApiResponse(e));

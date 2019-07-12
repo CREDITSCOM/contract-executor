@@ -3,6 +3,7 @@ package com.credits.thrift.utils;
 import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ByteCodeObjectData;
 import com.credits.general.thrift.generated.Variant;
+import com.credits.thrift.TokenStandardId;
 import exception.ContractExecutorException;
 
 import java.lang.reflect.Field;
@@ -11,6 +12,7 @@ import java.util.*;
 import static com.credits.ApplicationProperties.APP_VERSION;
 import static com.credits.general.util.variant.VariantConverter.toVariant;
 import static com.credits.service.BackwardCompatibilityService.allVersionsBasicStandardClass;
+import static com.credits.thrift.TokenStandardId.NOT_A_TOKEN;
 import static com.credits.utils.Constants.*;
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
@@ -60,11 +62,11 @@ public class ContractExecutorUtils {
         return contractVariables;
     }
 
-    public static Class<?> getRootClass(List<Class<?>> classes) {
+    public static Class<?> findRootClass(List<Class<?>> classes) {
         return classes.stream()
                 .filter(clazz -> !clazz.getName().contains("$"))
                 .findAny()
-                .orElseThrow(() -> new ContractExecutorException("contract class not compiled"));
+                .orElseThrow(() -> new ContractExecutorException("executor class not compiled"));
     }
 
     public static List<Class<?>> compileSmartContractByteCode(
@@ -107,5 +109,13 @@ public class ContractExecutorUtils {
                             } catch (Throwable ignored) {
                             }
                         }));
+    }
+
+    public static long defineTokenStandard(Class<?> contractClass) {
+        final var contractInterfaces = contractClass.getInterfaces();
+        return stream(TokenStandardId.values())
+                .filter(ts -> stream(contractInterfaces).anyMatch(ci -> ts.getTokenStandardClass().equals(ci)))
+                .findFirst()
+                .orElse(NOT_A_TOKEN).getId();
     }
 }

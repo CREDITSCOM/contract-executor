@@ -17,6 +17,7 @@ class LimitedExecutionMethod<R> {
     protected DeployContractSession session;
     private StopWatch stopWatch;
     private Throwable exception;
+    private long threadId;
 
     LimitedExecutionMethod(DeployContractSession session) {
         this.session = session;
@@ -34,6 +35,7 @@ class LimitedExecutionMethod<R> {
             return res;
         });
         final var limitedTimeThread = new Thread(task);
+        threadId = limitedTimeThread.getId();
         stopWatch = new StopWatch(limitedTimeThread);
         exception = null;
         R result = null;
@@ -83,7 +85,7 @@ class LimitedExecutionMethod<R> {
 
     protected MethodResult prepareResult(Variant returnValue) {
         return getExceptionOrNull() == null
-                ? new MethodResult(returnValue, spentCpuTime())
-                : new MethodResult(getExceptionOrNull(), spentCpuTime());
+                ? new MethodResult(returnValue, spentCpuTime(), threadId)
+                : new MethodResult(getExceptionOrNull(), spentCpuTime(), threadId);
     }
 }

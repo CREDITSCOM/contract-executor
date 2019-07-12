@@ -2,31 +2,36 @@ package com.credits.service.node.apiexec;
 
 import com.credits.client.executor.thrift.generated.apiexec.GetSeedResult;
 import com.credits.client.executor.thrift.generated.apiexec.SmartContractGetResult;
-import com.credits.client.node.pojo.TransactionFlowData;
 import com.credits.client.node.thrift.generated.WalletBalanceGetResult;
 import com.credits.client.node.thrift.generated.WalletIdGetResult;
 import com.credits.general.thrift.generated.Amount;
 import com.credits.ioc.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pojo.EmitTransactionData;
 import pojo.apiexec.GetSmartCodeResultData;
 import pojo.apiexec.SmartContractGetResultData;
-import service.node.NodeApiExecInteractionService;
+import service.node.NodeApiExecStoreTransactionService;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.credits.client.node.util.NodeClientUtils.processApiResponse;
-import static com.credits.client.node.util.NodePojoConverter.transactionFlowDataToTransaction;
 import static com.credits.general.util.GeneralConverter.amountToBigDecimal;
 import static com.credits.general.util.GeneralConverter.decodeFromBASE58;
-import static com.credits.general.util.Utils.calculateActualFee;
 import static com.credits.utils.ApiExecClientPojoConverter.createSmartContractGetResultData;
+import static java.util.Collections.emptyList;
 
-public class NodeApiExecInteractionServiceImpl implements NodeApiExecInteractionService {
+public class NodeApiExecInteractionServiceImpl implements NodeApiExecStoreTransactionService {
     private final static Logger logger = LoggerFactory.getLogger(NodeApiExecInteractionServiceImpl.class);
 
     private final NodeThriftApiExec nodeClient;
+    private final Map<Long, List<EmitTransactionData>> emittedTransactionsByThreadId = new ConcurrentHashMap<>();
 
     @Inject
     public NodeApiExecInteractionServiceImpl(NodeThriftApiExec nodeApiClient) {
@@ -59,20 +64,17 @@ public class NodeApiExecInteractionServiceImpl implements NodeApiExecInteraction
         return data;
     }
 
+    @Deprecated
     @Override
     public void sendTransaction(long accessId, String source, String target, double amount, double fee, byte[] userData) {
-        final var decAmount = new BigDecimal(String.valueOf(amount));
-        final var actualOfferedMaxFee = calculateActualFee(fee);
-        final var transactionFlowData = new TransactionFlowData(0,
-                                                          decodeFromBASE58(source),
-                                                          decodeFromBASE58(target),
-                                                          decAmount,
-                                                          actualOfferedMaxFee.getRight(),
-                                                          null,
-                                                          userData);
-        logger.debug("sendTransaction transactionFlowData -> {}", transactionFlowData);
-        final var result = nodeClient.sendTransaction(accessId, transactionFlowDataToTransaction(transactionFlowData));
-        processApiResponse(result.getStatus());
+        sendTransaction(accessId, source, target, amount, userData);
+    }
+
+    @Override
+    public void sendTransaction(long accessId, String source, String target, double amount, byte[] userData) {
+        final var id = Thread.currentThread().getId();
+        final var emittedTransactions = emittedTransactionsByThreadId.computeIfAbsent(id, k -> new ArrayList<>());
+        emittedTransactions.add(new EmitTransactionData(source, target, amount, userData));
     }
 
     @Override
@@ -94,4 +96,8 @@ public class NodeApiExecInteractionServiceImpl implements NodeApiExecInteraction
         logger.info(String.format("getBalance: <--- balance = %s", balance));
         return balance;
     }
+
+    @Override
+    public List<EmitTransactionData> takeAwayEmittedTransactions(long threadId) {
+        return Optional.ofNullable(emittedTransactionsByThreadId.remove(threadId)).orElse(emptyList()); }
 }
