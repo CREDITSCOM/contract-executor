@@ -111,12 +111,12 @@ public class ExternalMethodsCallTest extends ContractExecutorTestContext {
     @Test
     public void invokePayableNotAllowedForCall() {
 
-        configureGetContractByteCodeNodeResponse(deployContractState, false);
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, false);
 
         final ReturnValue returnValue = executeExternalSmartContract(
-                "externalCall",
+                smartContract,
                 deployContractState,
-                calledSmartContractAddress,
+                "externalCall",
                 "payable");
 
         final SmartContractMethodResult methodResult = returnValue.executeResults.get(0);
