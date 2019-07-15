@@ -7,7 +7,7 @@ import java.util.Objects;
 import static com.credits.general.thrift.generated.Variant._Fields.V_STRING;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 
-class MethodResult {
+public class MethodResult {
     private final long spentCpuTime;
     private final Variant returnValue;
     private final Throwable exception;

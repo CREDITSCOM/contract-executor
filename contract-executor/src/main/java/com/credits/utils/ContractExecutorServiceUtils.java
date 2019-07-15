@@ -11,9 +11,12 @@ import com.credits.scapi.annotations.ContractAddress;
 import com.credits.scapi.annotations.ContractMethod;
 import com.credits.scapi.annotations.UsingContract;
 import com.credits.scapi.annotations.UsingContracts;
+import com.credits.service.contract.MethodResult;
 import exception.ContractExecutorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pojo.SmartContractMethodResult;
+import service.node.NodeApiExecStoreTransactionService;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
 import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
 import static com.credits.general.util.Utils.rethrowUnchecked;
+import static com.credits.general.util.variant.VariantConverter.toVariant;
 import static com.credits.thrift.utils.ContractExecutorUtils.OBJECT_METHODS;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
@@ -32,6 +36,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.beanutils.MethodUtils.getMatchingAccessibleMethod;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseStackTrace;
 import static org.apache.commons.lang3.reflect.FieldUtils.getAllFieldsList;
 
 
@@ -65,6 +70,22 @@ public class ContractExecutorServiceUtils {
     public static APIResponse failureApiResponse(Throwable e) {
         return new APIResponse(FAILURE.code, getRootCauseMessage(e));
     }
+
+
+    public static SmartContractMethodResult createSuccessMethodResult(MethodResult mr, NodeApiExecStoreTransactionService nodeApiExecService) {
+        return new SmartContractMethodResult(SUCCESS_API_RESPONSE,
+                                             mr.getReturnValue(),
+                                             mr.getSpentCpuTime(),
+                                             nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId()));
+    }
+
+    public static SmartContractMethodResult createFailureMethodResult(MethodResult mr, NodeApiExecStoreTransactionService nodeApiExecService) {
+        return new SmartContractMethodResult(failureApiResponse(mr.getException()),
+                                             toVariant(String.class.getTypeName(), String.join("\n", getRootCauseStackTrace(mr.getException()))),
+                                             mr.getSpentCpuTime(),
+                                             nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId()));
+    }
+
 
     public static Object[] castValues(Class<?>[] types, Variant[] params, ClassLoader classLoader) throws ContractExecutorException {
         if (params == null || params.length != types.length) {

@@ -15,7 +15,6 @@ import com.credits.thrift.utils.ContractExecutorUtils;
 import exception.ContractExecutorException;
 import pojo.ExternalSmartContract;
 import pojo.ReturnValue;
-import pojo.SmartContractMethodResult;
 import pojo.apiexec.SmartContractGetResultData;
 import pojo.session.DeployContractSession;
 import pojo.session.InvokeMethodSession;
@@ -57,14 +56,10 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         final var contractClass = findRootClass(compileClassesAndDropPermissions(session.byteCodeObjectDataList, getSmartContractClassLoader()));
         final var methodResult = new Deployer(session, contractClass).deploy();
         final var newContractState = methodResult.getInvokedObject() != null ? serialize(methodResult.getInvokedObject()) : new byte[0];
-        final var emittedTransactions = nodeApiExecService.takeAwayEmittedTransactions(methodResult.getThreadId());
         return new ReturnValue(newContractState,
-                               singletonList(new SmartContractMethodResult(methodResult.getException() != null
-                                                                                   ? failureApiResponse(methodResult.getException())
-                                                                                   : SUCCESS_API_RESPONSE,
-                                                                           methodResult.getReturnValue(),
-                                                                           methodResult.getSpentCpuTime(),
-                                                                           emittedTransactions)),
+                               singletonList(methodResult.getException() == null
+                                                     ? createSuccessMethodResult(methodResult, nodeApiExecService)
+                                                     : createFailureMethodResult(methodResult, nodeApiExecService)),
                                session.usedContracts);
     }
 
@@ -85,14 +80,8 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         return new ReturnValue(serialize(executor.getSmartContractObject()),
                                methodResults.stream()
                                        .map(mr -> mr.getException() == null
-                                               ? new SmartContractMethodResult(SUCCESS_API_RESPONSE,
-                                                                               mr.getReturnValue(),
-                                                                               mr.getSpentCpuTime(),
-                                                                               nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId()))
-                                               : new SmartContractMethodResult(failureApiResponse(mr.getException()),
-                                                                               mr.getReturnValue(),
-                                                                               mr.getSpentCpuTime(),
-                                                                               nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId())))
+                                               ? createSuccessMethodResult(mr, nodeApiExecService)
+                                               : createFailureMethodResult(mr, nodeApiExecService))
                                        .collect(toList()),
                                session.usedContracts);
     }
