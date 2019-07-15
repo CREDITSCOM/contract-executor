@@ -117,6 +117,7 @@ public class ExternalMethodsCallTest extends ContractExecutorTestContext {
                 smartContract,
                 deployContractState,
                 "externalCall",
+                smartContract.getContractAddressBase58(),
                 "payable");
 
         final SmartContractMethodResult methodResult = returnValue.executeResults.get(0);

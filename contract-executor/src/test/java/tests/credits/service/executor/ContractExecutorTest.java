@@ -1,7 +1,10 @@
 package tests.credits.service.executor;
 
 
+import com.credits.client.executor.thrift.generated.apiexec.GetSeedResult;
+import com.credits.client.node.thrift.generated.WalletBalanceGetResult;
 import com.credits.general.thrift.generated.Variant;
+import com.credits.general.util.GeneralConverter;
 import com.credits.general.util.compiler.CompilationException;
 import org.hamcrest.collection.IsMapContaining;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +16,7 @@ import tests.credits.service.ContractExecutorTestContext;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
@@ -22,11 +26,12 @@ import static com.credits.general.thrift.generated.Variant._Fields.V_VOID;
 import static com.credits.general.util.variant.VariantConverter.VOID_TYPE_VALUE;
 import static com.credits.general.util.variant.VariantConverter.toObject;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
+import static java.nio.ByteBuffer.wrap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 import static tests.credits.TestContract.*;
 
@@ -118,9 +123,10 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     void getBalanceReturnBigDecimal() {
         final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
         final var contractState = deploySmartContract(smartContract).newContractState;
-        final var expectedBigDecimalValue = new BigDecimal("19.5");
+        final var expectedBigDecimalValue = new BigDecimal("19.5").setScale(18, RoundingMode.DOWN);
 
-        when(spyNodeApiExecService.getBalance(anyString())).thenReturn(expectedBigDecimalValue);
+        when(nodeThriftApiExec.getBalance(any())).thenReturn(new WalletBalanceGetResult(SUCCESS_API_RESPONSE,
+                                                                                        GeneralConverter.bigDecimalToAmount(expectedBigDecimalValue)));
 
         final var balance = toObject(getFirstReturnValue(executeSmartContract(smartContract, contractState, "getBalanceTest")));
         assertThat(balance, is(expectedBigDecimalValue));
@@ -179,7 +185,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         final var contractState = deploySmartContract(smartContract).newContractState;
         final var expectedSeed = new byte[]{0xB, 0xA, 0xB, 0xE};
 
-        when(spyNodeApiExecService.getSeed(anyLong())).thenReturn(expectedSeed);
+        when(nodeThriftApiExec.getSeed(anyLong())).thenReturn(new GetSeedResult(SUCCESS_API_RESPONSE, wrap(expectedSeed)));
         final var seed = getFirstReturnValue(executeSmartContract(smartContract, contractState, "testGetSeed")).getV_byte_array();
 
         assertThat(seed, is(expectedSeed));

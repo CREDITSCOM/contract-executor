@@ -1,8 +1,11 @@
 package tests.credits.service;
 
+import com.credits.client.executor.thrift.generated.apiexec.SmartContractGetResult;
 import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ApiResponseData;
 import com.credits.general.thrift.generated.Variant;
+import com.credits.service.node.apiexec.NodeThriftApiExec;
+import com.credits.utils.ContractExecutorServiceUtils;
 import pojo.ExternalSmartContract;
 import pojo.ReturnValue;
 import pojo.apiexec.SmartContractGetResultData;
@@ -22,8 +25,9 @@ import java.util.Map;
 import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
 import static com.credits.general.util.Utils.rethrowUnchecked;
 import static com.credits.service.BackwardCompatibilityService.allVersionsSmartContractClass;
+import static java.nio.ByteBuffer.wrap;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 import static tests.credits.TestUtils.variantArrayOf;
 
@@ -39,6 +43,8 @@ public abstract class ContractExecutorTestContext {
     protected Map<TestContract, SmartContactTestData> smartContractsRepository;
     @Inject
     protected NodeApiExecStoreTransactionService spyNodeApiExecService;
+    @Inject
+    protected NodeThriftApiExec nodeThriftApiExec;
 
     protected void setUp() throws Exception {
         DaggerTestComponent.builder().build().inject(this);
@@ -118,12 +124,11 @@ public abstract class ContractExecutorTestContext {
 
 
     protected void setNodeResponseGetSmartContractByteCode(SmartContactTestData contractTestData, byte[] contractState, boolean isCanModify) {
-        when(spyNodeApiExecService.getExternalSmartContractByteCode(anyLong(), anyString()))
-                .thenReturn(new SmartContractGetResultData(
-                        new ApiResponseData(SUCCESS, "success"),
-                        contractTestData.getByteCodeObjectDataList(),
-                        contractState,
-                        isCanModify));
+        when(nodeThriftApiExec.getSmartContractBinary(anyLong(), any()))
+                .thenReturn(new SmartContractGetResult(ContractExecutorServiceUtils.SUCCESS_API_RESPONSE,
+                                                       contractTestData.getByteCodeObjectList(),
+                                                       wrap(contractState),
+                                                       isCanModify));
     }
 
     private InvokeMethodSession initInvokeMethodSession(SmartContactTestData smartContact,
