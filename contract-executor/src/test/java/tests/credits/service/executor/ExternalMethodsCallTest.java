@@ -1,11 +1,9 @@
 package tests.credits.service.executor;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pojo.ReturnValue;
 import pojo.SmartContractMethodResult;
-import tests.credits.SmartContactTestData;
-import tests.credits.service.ContractExecutorTestContext;
+import tests.credits.service.ExternalMethodCallTestContext;
 
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
 import static com.credits.general.util.variant.VariantConverter.VOID_TYPE_VALUE;
@@ -15,20 +13,10 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
-import static tests.credits.TestContract.SmartContractV0TestImpl;
 
-public class ExternalMethodsCallTest extends ContractExecutorTestContext {
+public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
 
-    private final String calledSmartContractAddress = "5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpe";
-    private SmartContactTestData smartContract;
-    private byte[] deployContractState = null;
 
-    @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
-        smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        deployContractState = deploySmartContract(smartContract).newContractState;
-    }
 
     @Test
     public void getter_method_must_not_change_state() {

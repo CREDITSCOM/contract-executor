@@ -2,6 +2,7 @@ import com.credits.scapi.v2.*;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import com.credits.scapi.annotations.*;
 
 public class SmartContractV2 extends SmartContract {
 
@@ -18,5 +19,9 @@ public class SmartContractV2 extends SmartContract {
     public void createTwoTransactionThenThrowException(){
         createTwoTransactions();
         throw new RuntimeException("some problem occured here");
+    }
+
+    public Object externalCall(@ContractAddress(id = 0) String address, @ContractMethod(id = 0) String method) {
+        return invokeExternalContract(address, method);
     }
 }
