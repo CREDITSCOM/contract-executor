@@ -1,6 +1,7 @@
 package com.credits.service.contract;
 
 import com.credits.general.thrift.generated.Variant;
+import com.credits.pojo.MethodData;
 import exception.ContractExecutorException;
 import pojo.session.InvokeMethodSession;
 
@@ -25,10 +26,14 @@ class MethodExecutor extends LimitedExecutionMethod<Variant> {
         this.classLoader = instance.getClass().getClassLoader();
     }
 
-    public List<MethodResult> execute() {
+    public List<MethodResult> executeIntoLimitTimeThread() {
         return session.paramsTable.length < 2
                 ? invokeSingleMethod()
                 : invokeMultipleMethod();
+    }
+
+    public List<MethodResult> executeIntoCurrentThread() {
+        return List.of(prepareResult(invokeIntoCurrentThread(session.paramsTable[0])));
     }
 
     public Object getSmartContractObject() {
@@ -36,7 +41,7 @@ class MethodExecutor extends LimitedExecutionMethod<Variant> {
     }
 
     private List<MethodResult> invokeSingleMethod() {
-        return List.of(prepareResult(invoke(session.paramsTable[0])));
+        return List.of(prepareResult(invokeIntoLimitTimeThread(session.paramsTable[0])));
     }
 
     private List<MethodResult> invokeMultipleMethod() {
@@ -45,15 +50,26 @@ class MethodExecutor extends LimitedExecutionMethod<Variant> {
 
     private Variant invokeUsingPrimaryContractState(Variant... params) {
         instance = deserialize(session.contractState, instance.getClass().getClassLoader());
-        return invoke(params);
+        return invokeIntoLimitTimeThread(params);
     }
 
-    private Variant invoke(Variant... params) {
+    private Variant invokeIntoCurrentThread(Variant... params) {
+        final var methodData = findInvokedMethodIntoContract(params);
+        final var method = methodData.method;
+        final var returnTypeName = method.getReturnType().getTypeName();
+        return runIntoCurrentThread(() -> toVariant(returnTypeName, method.invoke(instance, methodData.argValues)));
+    }
+
+    private Variant invokeIntoLimitTimeThread(Variant... params) {
+        final var methodData = findInvokedMethodIntoContract(params);
+        final var method = methodData.method;
+        final var returnTypeName = method.getReturnType().getTypeName();
+        return runForLimitTime(() -> toVariant(returnTypeName, method.invoke(instance, methodData.argValues)));
+    }
+
+    private MethodData findInvokedMethodIntoContract(Variant[] params) {
         try {
-            final var methodData = getMethodArgumentsValuesByNameAndParams(instance.getClass(), session.methodName, params, classLoader);
-            final var method = methodData.method;
-            final var returnTypeName = method.getReturnType().getTypeName();
-            return runForLimitTime(() -> toVariant(returnTypeName, method.invoke(instance, methodData.argValues)));
+            return getMethodArgumentsValuesByNameAndParams(instance.getClass(), session.methodName, params, classLoader);
         } catch (ClassNotFoundException e) {
             throw new ContractExecutorException(getRootCauseMessage(e));
         }

@@ -76,7 +76,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     private ReturnValue executeContractMethod(InvokeMethodSession session, Object contractInstance) {
         final var executor = new MethodExecutor(session, contractInstance);
-        final var methodResults = executor.execute();
+        final var methodResults = executor.executeIntoLimitTimeThread();
         return new ReturnValue(serialize(executor.getSmartContractObject()),
                                methodResults.stream()
                                        .map(mr -> mr.getException() == null
@@ -103,7 +103,15 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
             usedContracts.get(session.contractAddress).setInstance(instance);
         }
 
-        return executeContractMethod(session, instance);
+        final var executor = new MethodExecutor(session, instance);
+        final var methodResults = executor.executeIntoCurrentThread();
+        return new ReturnValue(serialize(executor.getSmartContractObject()),
+                               methodResults.stream()
+                                       .map(mr -> mr.getException() == null
+                                               ? createSuccessMethodResult(mr, nodeApiExecService)
+                                               : createFailureMethodResult(mr, nodeApiExecService))
+                                       .collect(toList()),
+                               session.usedContracts);
     }
 
     @Override

@@ -1,8 +1,10 @@
 package tests.credits.service.executor;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import pojo.ReturnValue;
 import pojo.SmartContractMethodResult;
+import tests.credits.UseTestContract;
 import tests.credits.service.ExternalMethodCallTestContext;
 
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
@@ -13,9 +15,12 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static tests.credits.TestContract.SmartContractV2TestImpl;
 
 public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
-
 
 
     @Test
@@ -114,6 +119,25 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
         assertThat(methodResult.status.message, containsString("payable method cannot be called"));
         assertThat(returnValue.newContractState, equalTo(deployContractState));
         assertThat(returnValue.externalSmartContracts.get(calledSmartContractAddress), nullValue());
+    }
+
+    @Test
+    @DisplayName("transactions emitted into external contract must returned into result")
+    @UseTestContract(SmartContractV2TestImpl)
+    void sendTransactionsIntoExternalSmartContract() {
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
+
+        final var result = executeExternalSmartContract(
+                smartContract,
+                deployContractState,
+                "externalCall",
+                smartContract.getContractAddressBase58(),
+                "createTwoTransactions");
+
+        final var emittedTransactions = result.executeResults.get(0).emittedTransactions;
+
+        assertThat(emittedTransactions.size(), is(0));
+        verify(spyNodeApiExecService, times(2)).sendTransaction(anyLong(), anyString(), anyString(), anyDouble(), any());
     }
 
     @Test

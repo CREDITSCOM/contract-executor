@@ -74,6 +74,17 @@ class LimitedExecutionMethod<R> {
         return result;
     }
 
+    protected R runIntoCurrentThread(Callable<R> block){
+        R result = null;
+        threadId = Thread.currentThread().getId();
+        try {
+            result = block.call();
+        }catch (Throwable e){
+            exception = e;
+        }
+        return result;
+    }
+
     public long spentCpuTime() {
         return stopWatch != null ? stopWatch.getTime() : 0L;
     }
