@@ -22,12 +22,23 @@
         <javaVersion>11</javaVersion>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.credits.client</groupId>
-            <artifactId>general</artifactId>
-            <version>1.2</version>
-            <scope>compile</scope>
-        </dependency>
-    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifestEntries>
+                            <Main-Class>com.credits.ExecutorApp</Main-Class>
+                            <Multi-Release>true</Multi-Release>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
