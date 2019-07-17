@@ -49,13 +49,14 @@ public abstract class ContractExecutorTestContext {
     protected NodeApiExecStoreTransactionService spyNodeApiExecService;
     @Inject
     protected NodeThriftApiExec nodeThriftApiExec;
+    private UseContract useContract;
 
     protected void setUp() throws Exception {
         DaggerTestComponent.builder().build().inject(this);
         when(ceService.getSmartContractClassLoader()).thenReturn(byteCodeContractClassLoader);
     }
 
-    protected void setUp(TestInfo testInfo) throws Exception{
+    protected void setUp(TestInfo testInfo) throws Exception {
         setUp();
         selectTestContractFromAnnotation(testInfo);
     }
@@ -63,15 +64,16 @@ public abstract class ContractExecutorTestContext {
     private void selectTestContractFromAnnotation(TestInfo testInfo) {
         if (testInfo.getTags().contains(UseContract.class.getSimpleName())) {
             testInfo.getTestMethod().ifPresent(m -> {
-                final var usingContract = m.getAnnotation(UseContract.class).value();
-                selectSmartContractAndDeploy(usingContract);
+                useContract = m.getAnnotation(UseContract.class);
+                smartContract = smartContractsRepository.get(useContract.value());
+                if(useContract.deploy()){
+                    deployContractState = deploySmartContract(smartContract).newContractState;
+                }
             });
         }
     }
 
     private void selectSmartContractAndDeploy(TestContract testContract) {
-        smartContract = smartContractsRepository.get(testContract);
-        deployContractState = deploySmartContract(smartContract).newContractState;
     }
 
     private void initSmartContractStaticField(String fieldName, Object value) {

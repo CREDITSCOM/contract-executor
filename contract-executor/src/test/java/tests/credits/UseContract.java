@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 @Tag("UseContract")
 public @interface UseContract {
     TestContract value() default TestContract.SmartContractV2TestImpl;
+    boolean deploy() default true;
 }

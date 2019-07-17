@@ -156,10 +156,10 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseContract(SmartContractV0TestImpl)
     @DisplayName("compileContractClass must be throw compilation exception with explanations")
     void compileContractTest1() {
-        assertThrows(CompilationException.class, () -> ceService.compileContractClass("class MyContract {\n MyContract()\n}"));
+        Throwable  exception = assertThrows(CompilationException.class, () -> ceService.compileContractClass("class MyContract {\n MyContract()\n}"));
+        assertThat(exception.getMessage(), containsString("compilation errors in class MyContract :\n2:';' expected"));
     }
 
     @Test
@@ -227,11 +227,9 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseContract(SmartContractV2TestImpl)
+    @UseContract(value = TroubleConstructor, deploy = false)
     @DisplayName("exception into constructor must be return fail status with exception method")
     void constructorWithException() throws IOException {
-        final var smartContract = smartContractsRepository.get(TroubleConstructor);
-
         final var result = deploySmartContract(smartContract).executeResults.get(0);
 
         assertThat(result.status.code, is(FAILURE.code));
@@ -239,8 +237,8 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @DisplayName("v2.SmartContract must be compiled and executable")
     @UseContract(SmartContractV2TestImpl)
+    @DisplayName("v2.SmartContract must be compiled and executable")
     void executePayableSmartContractV2() throws IOException {
         final var result = executeSmartContract(smartContract, deployContractState, "payable", BigDecimal.ONE, new byte[0]).executeResults.get(0);
 
