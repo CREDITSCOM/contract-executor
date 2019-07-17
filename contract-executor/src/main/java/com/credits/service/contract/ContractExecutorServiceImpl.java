@@ -108,8 +108,8 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         return new ReturnValue(serialize(executor.getSmartContractObject()),
                                methodResults.stream()
                                        .map(mr -> mr.getException() == null
-                                               ? createSuccessMethodResult(mr, nodeApiExecService)
-                                               : createFailureMethodResult(mr, nodeApiExecService))
+                                               ? createSuccessExternalContractResult(mr)
+                                               : createFailureExternalContractResult(mr))
                                        .collect(toList()),
                                session.usedContracts);
     }

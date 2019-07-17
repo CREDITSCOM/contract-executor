@@ -31,8 +31,7 @@ import static com.credits.general.util.Utils.rethrowUnchecked;
 import static com.credits.general.util.variant.VariantConverter.toVariant;
 import static com.credits.thrift.utils.ContractExecutorUtils.OBJECT_METHODS;
 import static java.util.Arrays.stream;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.beanutils.MethodUtils.getMatchingAccessibleMethod;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
@@ -72,6 +71,19 @@ public class ContractExecutorServiceUtils {
     }
 
 
+    public static SmartContractMethodResult createSuccessExternalContractResult(MethodResult mr) {
+        return new SmartContractMethodResult(SUCCESS_API_RESPONSE,
+                                             mr.getReturnValue(),
+                                             mr.getSpentCpuTime(),
+                                             emptyList());
+    }
+
+    public static SmartContractMethodResult createFailureExternalContractResult(MethodResult mr) {
+        return new SmartContractMethodResult(failureApiResponse(mr.getException()),
+                                             toVariant(String.class.getTypeName(), String.join("\n", getRootCauseStackTrace(mr.getException()))),
+                                             mr.getSpentCpuTime(),
+                                             emptyList());
+    }
     public static SmartContractMethodResult createSuccessMethodResult(MethodResult mr, NodeApiExecStoreTransactionService nodeApiExecService) {
         return new SmartContractMethodResult(SUCCESS_API_RESPONSE,
                                              mr.getReturnValue(),

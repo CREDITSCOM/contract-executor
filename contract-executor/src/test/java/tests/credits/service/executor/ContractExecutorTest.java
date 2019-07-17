@@ -317,6 +317,29 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
+    @DisplayName("emitted transaction from external contracts must returned into execution result")
+    void returnEmittedTransactionsFromExternalContracts() {
+        final var smartContract = smartContractsRepository.get(SmartContractV2TestImpl);
+        final var contractState = deploySmartContract(smartContract).newContractState;
+        final var contractAddress = smartContract.getContractAddressBase58();
+
+        final var result = executeSmartContract(smartContract,
+                                                contractState,
+                                                "externalCall",
+                                                contractAddress,
+                                                "createTwoTransactions");
+
+        final var emittedTransactions = result.executeResults.get(0).emittedTransactions;
+
+        final var firstTransaction = new EmitTransactionData(initiatorAddressBase58, smartContract.getContractAddressBase58(), 10);
+        final var secondTransaction = new EmitTransactionData(initiatorAddressBase58, smartContract.getContractAddressBase58(), 0.01,
+                                                              "hello".getBytes());
+        assertThat(emittedTransactions.size(), is(2));
+        assertThat(emittedTransactions.get(0), is(firstTransaction));
+        assertThat(emittedTransactions.get(1), is(secondTransaction));
+    }
+
+    @Test
     @DisplayName("token name can't be called Credits, CS, etc")
     void cantBeUsedReservedTokenName() {
         // TODO: 2019-07-05 add implementation
