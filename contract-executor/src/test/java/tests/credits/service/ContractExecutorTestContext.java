@@ -17,7 +17,7 @@ import service.node.NodeApiExecStoreTransactionService;
 import tests.credits.DaggerTestComponent;
 import tests.credits.SmartContactTestData;
 import tests.credits.TestContract;
-import tests.credits.UseTestContract;
+import tests.credits.UseContract;
 
 import javax.inject.Inject;
 import java.lang.reflect.Field;
@@ -61,9 +61,9 @@ public abstract class ContractExecutorTestContext {
     }
 
     private void selectTestContractFromAnnotation(TestInfo testInfo) {
-        if (testInfo.getTags().contains(UseTestContract.class.getSimpleName())) {
+        if (testInfo.getTags().contains(UseContract.class.getSimpleName())) {
             testInfo.getTestMethod().ifPresent(m -> {
-                final var usingContract = m.getAnnotation(UseTestContract.class).value();
+                final var usingContract = m.getAnnotation(UseContract.class).value();
                 selectSmartContractAndDeploy(usingContract);
             });
         }

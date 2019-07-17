@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@Tag("UseTestContract")
-public @interface UseTestContract {
+@Tag("UseContract")
+public @interface UseContract {
     TestContract value() default TestContract.SmartContractV2TestImpl;
 }

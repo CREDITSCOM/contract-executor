@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import pojo.EmitTransactionData;
 import pojo.ReturnValue;
-import tests.credits.UseTestContract;
+import tests.credits.UseContract;
 import tests.credits.service.ContractExecutorTestContext;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("void return value must be return V_VOID variant type")
     void returnVoidType() {
         ReturnValue returnValue = executeSmartContract(smartContract, deployContractState, "initialize");
@@ -53,7 +53,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("getter method cannot change contract state")
     void getterMethodCanNotChangeContractState() {
         ReturnValue rv = executeSmartContract(smartContract, deployContractState, "getTotal");
@@ -61,7 +61,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("setter method should be change executor state")
     void saveStateSmartContract() {
         var newContractState = executeSmartContract(smartContract, deployContractState, "addTokens", 10).newContractState;
@@ -69,7 +69,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("different contract state must be return different field value")
     public void differentContractStateReturnDifferentResult() {
         var total = getFirstReturnValue(executeSmartContract(smartContract, deployContractState, "getTotal")).getV_int();
@@ -82,7 +82,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("initiator must be initialized")
     void initiatorInit() {
         String initiator = getFirstReturnValue(executeSmartContract(smartContract, deployContractState, "getInitiatorAddress")).getV_string();
@@ -90,7 +90,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("sendTransaction into smartContract must be call NodeApiExecService")
     void sendTransactionIntoContract() {
         executeSmartContract(smartContract, deployContractState, "createTransactionIntoContract", "10");
@@ -99,7 +99,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("getContractVariables must be return public variables of contract")
     void getContractVariablesTest() {
         Map<String, Variant> contractVariables = ceService.getContractVariables(smartContract.getByteCodeObjectDataList(), deployContractState);
@@ -107,7 +107,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("returned value should be BigDecimal type")
     void getBalanceReturnBigDecimal() {
         final var expectedBigDecimalValue = new BigDecimal("19.5").setScale(18, RoundingMode.DOWN);
@@ -120,7 +120,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("parallel multiple call changes the contract state only once")
     void multipleMethodCall() {
         final var newContractState = executeSmartContractMultiple(smartContract,
@@ -135,7 +135,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
 
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("compile source code must return byteCodeDataObjects")
     void compileClassCall() throws CompilationException {
         final var byteCodeObjectData = ceService.compileContractClass(smartContract.getSourceCode());
@@ -145,7 +145,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
 
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("compileContractClass must be return byteCodes list of root and internal classes")
     void compileContractTest() {
         final var result = ceService.compileContractClass(smartContract.getSourceCode());
@@ -156,14 +156,14 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("compileContractClass must be throw compilation exception with explanations")
     void compileContractTest1() {
         assertThrows(CompilationException.class, () -> ceService.compileContractClass("class MyContract {\n MyContract()\n}"));
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("getSeed must be call NodeApiExecService")
     void getSeedCallIntoSmartContract() {
         final var expectedSeed = new byte[]{0xB, 0xA, 0xB, 0xE};
@@ -175,7 +175,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("execution of smart-executor must be stop when execution time expired")
     void executionTimeTest() {
         final var executionStatus = executeSmartContract(smartContract, deployContractState, 10, "infiniteLoop").executeResults.get(0).status;
@@ -185,7 +185,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("correct interrupt smart executor if time expired")
     void correctInterruptContractIfTimeExpired() {
         final var executionResult = executeSmartContract(smartContract, deployContractState, 10, "interruptedInfiniteLoop").executeResults.get(0);
@@ -195,7 +195,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("wait a bit delay for correct complete smart executor method")
     void waitCorrectCompleteOfSmartContract() {
         final var executionResult =
@@ -206,7 +206,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("executeByteCode must be return spent cpu time by execution method thread")
     void executeByteCodeMeasureCpuTimeByThread0() {
         var spentCpuTime = executeSmartContract(smartContract, deployContractState, 11, "nothingWorkOnlySleep").executeResults.get(0).spentCpuTime;
@@ -217,7 +217,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("exception into executeByteCode must be return fail status with exception message")
     void exceptionDuringExecution() {
         final var result = executeSmartContract(smartContract, deployContractState, 1, "thisMethodThrowsExcetion").executeResults.get(0);
@@ -227,7 +227,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV2TestImpl)
+    @UseContract(SmartContractV2TestImpl)
     @DisplayName("exception into constructor must be return fail status with exception method")
     void constructorWithException() throws IOException {
         final var smartContract = smartContractsRepository.get(TroubleConstructor);
@@ -240,7 +240,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
 
     @Test
     @DisplayName("v2.SmartContract must be compiled and executable")
-    @UseTestContract(SmartContractV2TestImpl)
+    @UseContract(SmartContractV2TestImpl)
     void executePayableSmartContractV2() throws IOException {
         final var result = executeSmartContract(smartContract, deployContractState, "payable", BigDecimal.ONE, new byte[0]).executeResults.get(0);
 
@@ -249,7 +249,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     @DisplayName("buildContractClass must be return list of classes")
     void buildContractClass() {
         final var result = ceService.buildContractClass(smartContract.getByteCodeObjectDataList());
@@ -260,7 +260,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV2TestImpl)
+    @UseContract(SmartContractV2TestImpl)
     @DisplayName("emitted transactions list must be returned into each execution result")
     void returnEmittedTransactions() {
         final var result = executeSmartContract(smartContract, deployContractState, "createTwoTransactions");
@@ -275,7 +275,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV2TestImpl)
+    @UseContract(SmartContractV2TestImpl)
     @DisplayName("takeAwayEmittedTransactions must be call even exception occurred")
     void takeAwayTransactionsMustBeCalledAlways() {
         executeSmartContract(smartContract, deployContractState, "createTwoTransactionThenThrowException");
@@ -284,7 +284,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV2TestImpl)
+    @UseContract(SmartContractV2TestImpl)
     @DisplayName("emitted transaction from external contracts must returned into execution result")
     void returnEmittedTransactionsFromExternalContracts() {
         final var contractAddress = smartContract.getContractAddressBase58();

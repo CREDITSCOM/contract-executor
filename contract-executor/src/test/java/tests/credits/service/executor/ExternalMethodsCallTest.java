@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import pojo.ReturnValue;
 import pojo.SmartContractMethodResult;
-import tests.credits.UseTestContract;
+import tests.credits.UseContract;
 import tests.credits.service.ExternalMethodCallTestContext;
 
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
@@ -25,7 +25,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
 
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     public void getter_method_must_not_change_state() {
 
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, false);
@@ -48,7 +48,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     public void setter_method_must_return_new_states() {
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
@@ -70,7 +70,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     public void recursion_contract_call() {
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
@@ -90,7 +90,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
 
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     public void passObjectToExternalCall() {
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
@@ -107,7 +107,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
     }
 
     @Test
-    @UseTestContract(SmartContractV0TestImpl)
+    @UseContract(SmartContractV0TestImpl)
     public void invokePayableNotAllowedForCall() {
 
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, false);
@@ -129,7 +129,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
 
     @Test
     @DisplayName("transactions emitted into external contract must returned into result")
-    @UseTestContract(SmartContractV2TestImpl)
+    @UseContract(SmartContractV2TestImpl)
     void sendTransactionsIntoExternalSmartContract() {
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
