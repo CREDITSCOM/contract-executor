@@ -10,8 +10,10 @@ import org.hamcrest.collection.IsMapContaining;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import pojo.EmitTransactionData;
 import pojo.ReturnValue;
+import tests.credits.UseTestContract;
 import tests.credits.service.ContractExecutorTestContext;
 
 import java.io.IOException;
@@ -38,111 +40,94 @@ import static tests.credits.TestContract.*;
 public class ContractExecutorTest extends ContractExecutorTestContext {
 
     @BeforeEach
-    protected void setUp() throws Exception {
-        super.setUp();
+    protected void setUp(TestInfo testInfo) throws Exception {
+        super.setUp(testInfo);
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("void return value must be return V_VOID variant type")
     void returnVoidType() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        ReturnValue returnValue = executeSmartContract(smartContract, contractState, "initialize");
+        ReturnValue returnValue = executeSmartContract(smartContract, deployContractState, "initialize");
         assertThat(returnValue.executeResults.get(0).result, is(new Variant(V_VOID, VOID_TYPE_VALUE)));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("getter method cannot change contract state")
     void getterMethodCanNotChangeContractState() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        ReturnValue rv = executeSmartContract(smartContract, contractState, "getTotal");
-        assertThat(contractState, equalTo(rv.newContractState));
+        ReturnValue rv = executeSmartContract(smartContract, deployContractState, "getTotal");
+        assertThat(deployContractState, equalTo(rv.newContractState));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("setter method should be change executor state")
     void saveStateSmartContract() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var initialContractState = deploySmartContract(smartContract).newContractState;
-
-        var newContractState = executeSmartContract(smartContract, initialContractState, "addTokens", 10).newContractState;
-        assertThat(initialContractState, not(equalTo(newContractState)));
+        var newContractState = executeSmartContract(smartContract, deployContractState, "addTokens", 10).newContractState;
+        assertThat(deployContractState, not(equalTo(newContractState)));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("different contract state must be return different field value")
     public void differentContractStateReturnDifferentResult() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        var contractState = deploySmartContract(smartContract).newContractState;
-
-        var total = getFirstReturnValue(executeSmartContract(smartContract, contractState, "getTotal")).getV_int();
+        var total = getFirstReturnValue(executeSmartContract(smartContract, deployContractState, "getTotal")).getV_int();
         assertThat(total, is(0));
 
-        contractState = executeSmartContract(smartContract, contractState, "addTokens", 10).newContractState;
+        final var contractState = executeSmartContract(smartContract, deployContractState, "addTokens", 10).newContractState;
 
         total = getFirstReturnValue(executeSmartContract(smartContract, contractState, "getTotal")).getV_int();
         assertThat(total, is(10));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("initiator must be initialized")
     void initiatorInit() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        String initiator = getFirstReturnValue(executeSmartContract(smartContract, contractState, "getInitiatorAddress")).getV_string();
+        String initiator = getFirstReturnValue(executeSmartContract(smartContract, deployContractState, "getInitiatorAddress")).getV_string();
         assertThat(initiator, is(initiatorAddressBase58));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("sendTransaction into smartContract must be call NodeApiExecService")
     void sendTransactionIntoContract() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        executeSmartContract(smartContract, contractState, "createTransactionIntoContract", "10");
+        executeSmartContract(smartContract, deployContractState, "createTransactionIntoContract", "10");
         verify(spyNodeApiExecService)
                 .sendTransaction(accessId, initiatorAddressBase58, smartContract.getContractAddressBase58(), 10, 1.0, new byte[0]);
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("getContractVariables must be return public variables of contract")
     void getContractVariablesTest() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        Map<String, Variant> contractVariables = ceService.getContractVariables(smartContract.getByteCodeObjectDataList(), contractState);
+        Map<String, Variant> contractVariables = ceService.getContractVariables(smartContract.getByteCodeObjectDataList(), deployContractState);
         assertThat(contractVariables, IsMapContaining.hasEntry("total", new Variant(V_INT, 0)));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("returned value should be BigDecimal type")
     void getBalanceReturnBigDecimal() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
         final var expectedBigDecimalValue = new BigDecimal("19.5").setScale(18, RoundingMode.DOWN);
 
         when(nodeThriftApiExec.getBalance(any())).thenReturn(new WalletBalanceGetResult(SUCCESS_API_RESPONSE,
                                                                                         GeneralConverter.bigDecimalToAmount(expectedBigDecimalValue)));
 
-        final var balance = toObject(getFirstReturnValue(executeSmartContract(smartContract, contractState, "getBalanceTest")));
+        final var balance = toObject(getFirstReturnValue(executeSmartContract(smartContract, deployContractState, "getBalanceTest")));
         assertThat(balance, is(expectedBigDecimalValue));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("parallel multiple call changes the contract state only once")
     void multipleMethodCall() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var initialContractState = deploySmartContract(smartContract).newContractState;
-
         final var newContractState = executeSmartContractMultiple(smartContract,
-                                                                  initialContractState,
+                                                                  deployContractState,
                                                                   "addTokens",
                                                                   new Object[][]{{10}, {10}, {10}, {10}}).newContractState;
-        assertThat(newContractState, not(equalTo(initialContractState)));
+        assertThat(newContractState, not(equalTo(deployContractState)));
 
         final var total = ceService.getContractVariables(smartContract.getByteCodeObjectDataList(), newContractState).get("total").getV_int();
         assertThat(total, is(10));
@@ -150,10 +135,9 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
 
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("compile source code must return byteCodeDataObjects")
     void compileClassCall() throws CompilationException {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-
         final var byteCodeObjectData = ceService.compileContractClass(smartContract.getSourceCode());
 
         assertThat(byteCodeObjectData, is(smartContract.getByteCodeObjectDataList()));
@@ -161,10 +145,9 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
 
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("compileContractClass must be return byteCodes list of root and internal classes")
     void compileContractTest() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-
         final var result = ceService.compileContractClass(smartContract.getSourceCode());
 
         assertThat(result.size(), greaterThan(0));
@@ -173,87 +156,78 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("compileContractClass must be throw compilation exception with explanations")
     void compileContractTest1() {
         assertThrows(CompilationException.class, () -> ceService.compileContractClass("class MyContract {\n MyContract()\n}"));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("getSeed must be call NodeApiExecService")
     void getSeedCallIntoSmartContract() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
         final var expectedSeed = new byte[]{0xB, 0xA, 0xB, 0xE};
 
         when(nodeThriftApiExec.getSeed(anyLong())).thenReturn(new GetSeedResult(SUCCESS_API_RESPONSE, wrap(expectedSeed)));
-        final var seed = getFirstReturnValue(executeSmartContract(smartContract, contractState, "testGetSeed")).getV_byte_array();
+        final var seed = getFirstReturnValue(executeSmartContract(smartContract, deployContractState, "testGetSeed")).getV_byte_array();
 
         assertThat(seed, is(expectedSeed));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("execution of smart-executor must be stop when execution time expired")
     void executionTimeTest() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        final var executionStatus = executeSmartContract(smartContract, contractState, 10, "infiniteLoop").executeResults.get(0).status;
+        final var executionStatus = executeSmartContract(smartContract, deployContractState, 10, "infiniteLoop").executeResults.get(0).status;
 
         assertThat(executionStatus.code, is(FAILURE.code));
         assertThat(executionStatus.message, containsString("TimeoutException"));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("correct interrupt smart executor if time expired")
     void correctInterruptContractIfTimeExpired() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        final var executionResult = executeSmartContract(smartContract, contractState, 10, "interruptedInfiniteLoop").executeResults.get(0);
+        final var executionResult = executeSmartContract(smartContract, deployContractState, 10, "interruptedInfiniteLoop").executeResults.get(0);
 
         assertThat(executionResult.status, is(SUCCESS_API_RESPONSE));
         assertThat(executionResult.result.getV_string(), is("infinite loop interrupted correctly"));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("wait a bit delay for correct complete smart executor method")
     void waitCorrectCompleteOfSmartContract() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
         final var executionResult =
-                executeSmartContract(smartContract, contractState, 10, "interruptInfiniteLoopWithDelay").executeResults.get(0);
+                executeSmartContract(smartContract, deployContractState, 10, "interruptInfiniteLoopWithDelay").executeResults.get(0);
 
         assertThat(executionResult.status, is(SUCCESS_API_RESPONSE));
         assertThat(executionResult.result.getV_string(), is("infinite loop interrupted correctly"));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("executeByteCode must be return spent cpu time by execution method thread")
     void executeByteCodeMeasureCpuTimeByThread0() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        var spentCpuTime = executeSmartContract(smartContract, contractState, 11, "nothingWorkOnlySleep").executeResults.get(0).spentCpuTime;
+        var spentCpuTime = executeSmartContract(smartContract, deployContractState, 11, "nothingWorkOnlySleep").executeResults.get(0).spentCpuTime;
         assertThat(spentCpuTime, lessThan(1000_000L));
 
-        spentCpuTime = executeSmartContract(smartContract, contractState, 11, "bitWorkingThenSleep").executeResults.get(0).spentCpuTime;
+        spentCpuTime = executeSmartContract(smartContract, deployContractState, 11, "bitWorkingThenSleep").executeResults.get(0).spentCpuTime;
         assertThat(spentCpuTime, greaterThan(10_000_000L));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("exception into executeByteCode must be return fail status with exception message")
     void exceptionDuringExecution() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        final var result = executeSmartContract(smartContract, contractState, 1, "thisMethodThrowsExcetion").executeResults.get(0);
+        final var result = executeSmartContract(smartContract, deployContractState, 1, "thisMethodThrowsExcetion").executeResults.get(0);
 
         assertThat(result.status.code, is(FAILURE.code));
         assertThat(result.status.message, containsString("oops some problem"));
     }
 
     @Test
+    @UseTestContract(SmartContractV2TestImpl)
     @DisplayName("exception into constructor must be return fail status with exception method")
     void constructorWithException() throws IOException {
         final var smartContract = smartContractsRepository.get(TroubleConstructor);
@@ -266,21 +240,18 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
 
     @Test
     @DisplayName("v2.SmartContract must be compiled and executable")
+    @UseTestContract(SmartContractV2TestImpl)
     void executePayableSmartContractV2() throws IOException {
-        final var smartContract = smartContractsRepository.get(SmartContractV2TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        final var result = executeSmartContract(smartContract, contractState, "payable", BigDecimal.ONE, new byte[0]).executeResults.get(0);
+        final var result = executeSmartContract(smartContract, deployContractState, "payable", BigDecimal.ONE, new byte[0]).executeResults.get(0);
 
         assertThat(result.status.code, is(SUCCESS.code));
         assertThat(result.result.getV_string(), is("payable call successfully"));
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     @DisplayName("buildContractClass must be return list of classes")
     void buildContractClass() {
-        final var smartContract = smartContractsRepository.get(SmartContractV0TestImpl);
-
         final var result = ceService.buildContractClass(smartContract.getByteCodeObjectDataList());
 
         assertThat(result.size(), is(2));
@@ -289,12 +260,10 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
+    @UseTestContract(SmartContractV2TestImpl)
     @DisplayName("emitted transactions list must be returned into each execution result")
     void returnEmittedTransactions() {
-        final var smartContract = smartContractsRepository.get(SmartContractV2TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        final var result = executeSmartContract(smartContract, contractState, "createTwoTransactions");
+        final var result = executeSmartContract(smartContract, deployContractState, "createTwoTransactions");
         final var emittedTransactions = result.executeResults.get(0).emittedTransactions;
 
         final var firstTransaction = new EmitTransactionData(initiatorAddressBase58, smartContract.getContractAddressBase58(), 10);
@@ -306,25 +275,22 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
+    @UseTestContract(SmartContractV2TestImpl)
     @DisplayName("takeAwayEmittedTransactions must be call even exception occurred")
     void takeAwayTransactionsMustBeCalledAlways() {
-        final var smartContract = smartContractsRepository.get(SmartContractV2TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
-
-        executeSmartContract(smartContract, contractState, "createTwoTransactionThenThrowException");
+        executeSmartContract(smartContract, deployContractState, "createTwoTransactionThenThrowException");
 
         verify(spyNodeApiExecService, times(2)).takeAwayEmittedTransactions(anyLong());
     }
 
     @Test
+    @UseTestContract(SmartContractV2TestImpl)
     @DisplayName("emitted transaction from external contracts must returned into execution result")
     void returnEmittedTransactionsFromExternalContracts() {
-        final var smartContract = smartContractsRepository.get(SmartContractV2TestImpl);
-        final var contractState = deploySmartContract(smartContract).newContractState;
         final var contractAddress = smartContract.getContractAddressBase58();
 
         final var result = executeSmartContract(smartContract,
-                                                contractState,
+                                                deployContractState,
                                                 "externalCall",
                                                 contractAddress,
                                                 "createTwoTransactions");

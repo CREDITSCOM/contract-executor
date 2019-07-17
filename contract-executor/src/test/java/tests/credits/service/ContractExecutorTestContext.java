@@ -6,6 +6,7 @@ import com.credits.general.pojo.ApiResponseData;
 import com.credits.general.thrift.generated.Variant;
 import com.credits.service.node.apiexec.NodeThriftApiExec;
 import com.credits.utils.ContractExecutorServiceUtils;
+import org.junit.jupiter.api.TestInfo;
 import pojo.ExternalSmartContract;
 import pojo.ReturnValue;
 import pojo.apiexec.SmartContractGetResultData;
@@ -16,6 +17,7 @@ import service.node.NodeApiExecStoreTransactionService;
 import tests.credits.DaggerTestComponent;
 import tests.credits.SmartContactTestData;
 import tests.credits.TestContract;
+import tests.credits.UseTestContract;
 
 import javax.inject.Inject;
 import java.lang.reflect.Field;
@@ -36,6 +38,8 @@ public abstract class ContractExecutorTestContext {
     private final ByteCodeContractClassLoader byteCodeContractClassLoader = new ByteCodeContractClassLoader();
     protected final String initiatorAddressBase58 = "5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpe";
     protected final long accessId = 0;
+    protected SmartContactTestData smartContract;
+    protected byte[] deployContractState = null;
 
     @Inject
     protected ContractExecutorService ceService;
@@ -49,6 +53,25 @@ public abstract class ContractExecutorTestContext {
     protected void setUp() throws Exception {
         DaggerTestComponent.builder().build().inject(this);
         when(ceService.getSmartContractClassLoader()).thenReturn(byteCodeContractClassLoader);
+    }
+
+    protected void setUp(TestInfo testInfo) throws Exception{
+        setUp();
+        selectTestContractFromAnnotation(testInfo);
+    }
+
+    private void selectTestContractFromAnnotation(TestInfo testInfo) {
+        if (testInfo.getTags().contains(UseTestContract.class.getSimpleName())) {
+            testInfo.getTestMethod().ifPresent(m -> {
+                final var usingContract = m.getAnnotation(UseTestContract.class).value();
+                selectSmartContractAndDeploy(usingContract);
+            });
+        }
+    }
+
+    private void selectSmartContractAndDeploy(TestContract testContract) {
+        smartContract = smartContractsRepository.get(testContract);
+        deployContractState = deploySmartContract(smartContract).newContractState;
     }
 
     private void initSmartContractStaticField(String fieldName, Object value) {

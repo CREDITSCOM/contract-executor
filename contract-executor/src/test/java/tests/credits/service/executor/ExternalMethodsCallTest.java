@@ -18,12 +18,14 @@ import static org.hamcrest.core.IsNot.not;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static tests.credits.TestContract.SmartContractV0TestImpl;
 import static tests.credits.TestContract.SmartContractV2TestImpl;
 
 public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
 
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     public void getter_method_must_not_change_state() {
 
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, false);
@@ -46,6 +48,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     public void setter_method_must_return_new_states() {
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
@@ -67,6 +70,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     public void recursion_contract_call() {
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
@@ -86,6 +90,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
 
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     public void passObjectToExternalCall() {
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
@@ -102,6 +107,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
     }
 
     @Test
+    @UseTestContract(SmartContractV0TestImpl)
     public void invokePayableNotAllowedForCall() {
 
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, false);
