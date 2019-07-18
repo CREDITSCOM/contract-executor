@@ -1,4 +1,4 @@
-package com.credits.thrift;
+package com.credits.scapi.misc;
 
 import com.credits.scapi.v0.BasicStandard;
 import com.credits.scapi.v0.ExtensionStandard;

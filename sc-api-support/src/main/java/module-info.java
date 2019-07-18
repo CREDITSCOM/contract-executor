@@ -11,4 +11,5 @@ module com.credits.sc.api.support {
     exports service.node to com.credits.contract.executor;
     exports com.credits.scapi.annotations to com.credits.contract.executor;
     exports com.credits.scapi.v2 to com.credits.contract.executor;
+    exports com.credits.scapi.misc to com.credits.contract.executor;
 }

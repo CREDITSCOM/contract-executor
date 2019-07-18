@@ -143,12 +143,12 @@
             <version>1.2</version>
             <scope>compile</scope>
         </dependency>
-            <dependency>
-                <groupId>com.credits.client</groupId>
-                <artifactId>general</artifactId>
-                <version>1.2</version>
-                <scope>compile</scope>
-            </dependency>
+        <dependency>
+            <groupId>com.credits.client</groupId>
+            <artifactId>general</artifactId>
+            <version>1.2</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>com.credits.client</groupId>
             <artifactId>executor_client</artifactId>

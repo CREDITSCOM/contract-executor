@@ -33,7 +33,7 @@ import static com.credits.general.pojo.ApiResponseCode.FAILURE;
 import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
 import static com.credits.general.thrift.generated.Variant._Fields.*;
 import static com.credits.general.util.variant.VariantConverter.VOID_TYPE_VALUE;
-import static com.credits.thrift.TokenStandardId.*;
+import static com.credits.scapi.misc.TokenStandardId.*;
 import static com.credits.utils.ApiExecClientPojoConverter.convertEmittedTransactionDataToEmittedTransaction;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
 import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;

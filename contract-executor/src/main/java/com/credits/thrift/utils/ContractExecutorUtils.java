@@ -3,7 +3,7 @@ package com.credits.thrift.utils;
 import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ByteCodeObjectData;
 import com.credits.general.thrift.generated.Variant;
-import com.credits.thrift.TokenStandardId;
+import com.credits.scapi.misc.TokenStandardId;
 import exception.ContractExecutorException;
 
 import java.lang.reflect.Field;
@@ -11,8 +11,8 @@ import java.util.*;
 
 import static com.credits.ApplicationProperties.APP_VERSION;
 import static com.credits.general.util.variant.VariantConverter.toVariant;
+import static com.credits.scapi.misc.TokenStandardId.NOT_A_TOKEN;
 import static com.credits.service.BackwardCompatibilityService.allVersionsBasicStandardClass;
-import static com.credits.thrift.TokenStandardId.NOT_A_TOKEN;
 import static com.credits.utils.Constants.*;
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
