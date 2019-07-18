@@ -6,7 +6,7 @@ import java.util.Properties;
 
 public class ApplicationProperties {
 
-    public static final short APP_VERSION = 1;
+    public static final short APP_VERSION = 2;
 
     public int executorPort = 9080;
     public String nodeApiHost = "localhost";
