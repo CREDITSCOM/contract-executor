@@ -108,7 +108,6 @@ public class ContractExecutorServiceUtils {
         for (int i = 0, typesLength = types.length; i < typesLength; i++) {
             param = params[i];
             retVal[i] = VariantConverter.toObject(param, classLoader);
-            logger.debug("casted param[{}] = {}", i, retVal[i]);
         }
         return retVal;
     }

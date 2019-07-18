@@ -85,7 +85,7 @@
                         <manifestEntries>
                             <Main-Class>com.credits.ExecutorApp</Main-Class>
                             <Multi-Release>true</Multi-Release>
-                            <Class-Path>sc-api-support.jar</Class-Path>
+                            <Class-Path>sc-api-support.jar logback.xml</Class-Path>
                         </manifestEntries>
                     </archive>
                 </configuration>

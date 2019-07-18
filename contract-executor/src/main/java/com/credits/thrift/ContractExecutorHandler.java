@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 import static com.credits.general.util.GeneralConverter.*;
 import static com.credits.ioc.Injector.INJECTOR;
-import static com.credits.thrift.TokenStandardId.NOT_A_TOKEN;
+import static com.credits.scapi.misc.TokenStandardId.NOT_A_TOKEN;
 import static com.credits.thrift.utils.ContractExecutorUtils.*;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
 import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
@@ -50,14 +50,16 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
                                                  short version) {
         ExecuteByteCodeResult executeByteCodeResult;
         try {
-            logger.debug("<-- executeByteCode\n" +
-                                 "accessId={}\n" +
-                                 "initiatorAddress={}\n" +
-                                 "invokedContract={}\n" +
-                                 "methodHeaders={}\n" +
-                                 "executionTime={}\n" +
-                                 "version={}",
-                         accessId, encodeToBASE58(initiatorAddress.array()), invokedContract, methodHeaders, executionTime, version);
+            if (logger.isDebugEnabled()) {
+                logger.debug(
+                        "<-- executeByteCode: initiatorAddress={}|contractAddress={}|contractState={} bytes|methodHeaders={}|executionTime={}|version={}",
+                        encodeToBASE58(initiatorAddress.array()),
+                        encodeToBASE58(invokedContract.contractAddress.array()),
+                        invokedContract.object.instance.array().length,
+                        methodHeaders,
+                        executionTime,
+                        version);
+            }
 
             validateVersion(version);
 
@@ -67,7 +69,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
             executeByteCodeResult = new ExecuteByteCodeResult(failureApiResponse(e), emptyList());
         }
 
-        logger.debug("--> {}", executeByteCodeResult);
+        logger.debug("executeByteCode --> {}", executeByteCodeResult);
         return executeByteCodeResult;
     }
 
@@ -85,24 +87,17 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         ExecuteByteCodeMultipleResult byteCodeMultipleResult;
 
         try {
-            logger.debug("<-- executeByteCodeMultiple" +
-                                 "\naccessId = {}," +
-                                 "\naddress = {}," +
-                                 "\nobject.byteCodeObjects length= {}, " +
-                                 "\nobject.instance length= {}, " +
-                                 "\nobject.instance hash= {} " +
-                                 "\nmethod = {}, " +
-                                 "\nparams = {}, " +
-                                 "\nversion = {}.",
-                         accessId,
-                         encodeToBASE58(initiatorAddress.array()),
-                         (classObject != null && classObject.byteCodeObjects != null ? classObject.byteCodeObjects.size() : "null"),
-                         (classObject != null && classObject.instance != null ? classObject.instance.position() : "null"),
-                         (classObject != null && classObject.instance != null ? classObject.instance.hashCode() : "null"),
-                         method,
-                         params == null ? "no params" : params.toString(),
-                         version
-            );
+            if (logger.isDebugEnabled()) {
+                logger.debug("<-- executeByteCodeMultiple: " +
+                                     "initiatorAddress={}|contractAddress={}|contractState={} bytes|method={}|params={}|executionTime={}|version={}",
+                             encodeToBASE58(initiatorAddress.array()),
+                             encodeToBASE58(invokedContract.contractAddress.array()),
+                             invokedContract.object.instance.array().length,
+                             method,
+                             params,
+                             executionTime,
+                             version);
+            }
 
             Objects.requireNonNull(classObject, "class object can't be null");
 
@@ -143,7 +138,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
             byteCodeMultipleResult = new ExecuteByteCodeMultipleResult(failureApiResponse(e), emptyList());
         }
 
-        logger.debug("--> {}", byteCodeMultipleResult);
+        logger.debug("executeByteCodeMultiple --> {}", byteCodeMultipleResult);
         return byteCodeMultipleResult;
     }
 
@@ -151,11 +146,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
     public GetContractMethodsResult getContractMethods(List<ByteCodeObject> compilationUnits, short version) {
         GetContractMethodsResult result;
         try {
-            logger.debug("<-- getContractMethods(\n" +
-                                 "bytecode = {} bytes, \n" +
-                                 "version = {})",
-                         compilationUnits.size(),
-                         version);
+            logger.debug("<-- getContractMethods: compilationUnits={} bytes|version={}", compilationUnits.size(), version);
             validateVersion(version);
             final var byteCodeObjects = byteCodeObjectsToByteCodeObjectsData(compilationUnits);
             final var contractClass = findRootClass(ceService.buildContractClass(byteCodeObjects));
@@ -168,22 +159,18 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         } catch (Throwable e) {
             result = new GetContractMethodsResult(failureApiResponse(e), emptyList(), NOT_A_TOKEN.getId());
         }
-        logger.debug("--> {}", result);
+        logger.debug("getContractMethods --> {}", result);
         return result;
     }
 
     @Override
-    public GetContractVariablesResult getContractVariables(
-            List<ByteCodeObject> compilationUnits,
-            ByteBuffer contractState,
-            short version) {
+    public GetContractVariablesResult getContractVariables(List<ByteCodeObject> compilationUnits, ByteBuffer contractState, short version) {
         GetContractVariablesResult result;
         try {
-            logger.debug("<-- getContractVariables(\n" +
-                                 "bytecode = {} bytes, \n" +
-                                 "contractState = {} bytes, \n" +
-                                 "version = {})",
-                         compilationUnits.size(), contractState.array().length, version);
+            if (logger.isDebugEnabled()) {
+                logger.debug("<-- getContractVariables: compilationUnits={} bytes|contractState={} bytes|version={}",
+                             compilationUnits.size(), contractState.array().length, version);
+            }
             validateVersion(version);
             result = new GetContractVariablesResult(SUCCESS_API_RESPONSE,
                                                     ceService.getContractVariables(
@@ -192,7 +179,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         } catch (Throwable e) {
             result = new GetContractVariablesResult(failureApiResponse(e), emptyMap());
         }
-        logger.debug("--> {}", result);
+        logger.debug("getContractVariables --> {}", result);
         return result;
     }
 
@@ -201,7 +188,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
     public CompileSourceCodeResult compileSourceCode(String sourceCode, short version) {
         CompileSourceCodeResult result;
         try {
-            logger.debug("<-- compileBytecode(\nsourceCode = {},\nversion = {})", sourceCode, version);
+            logger.debug("<-- compileBytecode: sourceCode={}|version={}", sourceCode, version);
             validateVersion(version);
             result = new CompileSourceCodeResult(SUCCESS_API_RESPONSE,
                                                  byteCodeObjectsDataToByteCodeObjects(ceService.compileContractClass(sourceCode)));
@@ -211,7 +198,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         } catch (Throwable e) {
             result = new CompileSourceCodeResult(failureApiResponse(e), emptyList());
         }
-        logger.debug("--> {}", result);
+        logger.debug("compileBytecode --> {}", result);
         return result;
     }
 }

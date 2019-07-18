@@ -20,8 +20,7 @@
         </rollingPolicy>
     </appender>
 
-    <logger name="com.credits" level="DEBUG" additivity="false">
-        <appender-ref ref="STDOUT" />
+    <logger name="com.credits" level="INFO" additivity="false">
         <appender-ref ref="FILE" />
     </logger>
 </configuration>
