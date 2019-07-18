@@ -138,7 +138,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
             byteCodeMultipleResult = new ExecuteByteCodeMultipleResult(failureApiResponse(e), emptyList());
         }
 
-        logger.debug("executeByteCodeMultiple --> {}", byteCodeMultipleResult);
+        logger.debug("executeByteCodeMultiple --> {} amountResults={}", byteCodeMultipleResult.status, byteCodeMultipleResult.results.size());
         return byteCodeMultipleResult;
     }
 
@@ -159,7 +159,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         } catch (Throwable e) {
             result = new GetContractMethodsResult(failureApiResponse(e), emptyList(), NOT_A_TOKEN.getId());
         }
-        logger.debug("getContractMethods --> {}", result);
+        logger.debug("getContractMethods --> {}|amountMethods={}|tokenId={}", result.status, result.methods.size(), result.tokenStandard);
         return result;
     }
 
@@ -179,7 +179,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         } catch (Throwable e) {
             result = new GetContractVariablesResult(failureApiResponse(e), emptyMap());
         }
-        logger.debug("getContractVariables --> {}", result);
+        logger.debug("getContractVariables --> { {}|amountVariables={}}", result.status, result.contractVariables.size());
         return result;
     }
 
@@ -198,7 +198,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         } catch (Throwable e) {
             result = new CompileSourceCodeResult(failureApiResponse(e), emptyList());
         }
-        logger.debug("compileBytecode --> {}", result);
+        logger.debug("compileBytecode --> {} amountByteCodeObjects={}", result.status, result.byteCodeObjects.size());
         return result;
     }
 }
