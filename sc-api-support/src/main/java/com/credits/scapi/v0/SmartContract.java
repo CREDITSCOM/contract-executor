@@ -70,7 +70,7 @@ public abstract class SmartContract implements Serializable {
         final ReturnValue returnValue = contractExecutorService.executeExternalSmartContract(
             new InvokeMethodSession(
                 accessId,
-                initiator,
+                this.contractAddress,
                 contractAddress,
                 usedContract.getContractData().getByteCodeObjects(),
                 usedContract.getContractData().getContractState(),
