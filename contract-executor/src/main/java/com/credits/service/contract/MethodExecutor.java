@@ -45,7 +45,9 @@ class MethodExecutor extends LimitedExecutionMethod<Variant> {
     }
 
     private List<MethodResult> invokeMultipleMethod() {
-        return stream(session.paramsTable).map(params -> prepareResult(invokeUsingPrimaryContractState(params))).collect(Collectors.toList());
+        final var results = stream(session.paramsTable).map(params -> prepareResult(invokeUsingPrimaryContractState(params))).collect(Collectors.toList());
+        session.usedContracts.get(session.contractAddress).setInstance(instance);
+        return results;
     }
 
     private Variant invokeUsingPrimaryContractState(Variant... params) {
