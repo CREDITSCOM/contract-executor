@@ -20,13 +20,10 @@ import tests.credits.TestContract;
 import tests.credits.UseContract;
 
 import javax.inject.Inject;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
-import static com.credits.general.util.Utils.rethrowUnchecked;
-import static com.credits.service.BackwardCompatibilityService.allVersionsSmartContractClass;
 import static java.nio.ByteBuffer.wrap;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
@@ -71,19 +68,6 @@ public abstract class ContractExecutorTestContext {
                 }
             });
         }
-    }
-
-    private void selectSmartContractAndDeploy(TestContract testContract) {
-    }
-
-    private void initSmartContractStaticField(String fieldName, Object value) {
-        allVersionsSmartContractClass.forEach(contract -> {
-            rethrowUnchecked(() -> {
-                Field interactionService = contract.getDeclaredField(fieldName);
-                interactionService.setAccessible(true);
-                interactionService.set(null, value);
-            });
-        });
     }
 
     protected ReturnValue deploySmartContract(TestContract smartContract) {

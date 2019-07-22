@@ -237,8 +237,8 @@ public class ContractExecutorHandlerTest {
 
         assertThat(result.getStatus().code, is(SUCCESS.code));
         assertThat(result.getResults().size(), is(2));
-        assertThat(result.getResults().get(0).contractsState.get(contractAddress).array(), is(returnContractState));
-        assertThat(result.getResults().get(1).contractsState.get(contractAddress).array(), is(returnContractState));
+        assertThat(result.getResults().get(0).contractsState.get(contractData.getContractAddressBinary()).array(), is(returnContractState));
+        assertThat(result.getResults().get(1).contractsState.get(contractData.getContractAddressBinary()).array(), is(returnContractState));
     }
 
     private ExecuteByteCodeResult prepareMockCEServiceThenExecute(SmartContactTestData contractData,
