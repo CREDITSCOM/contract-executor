@@ -23,6 +23,7 @@ import service.node.NodeApiExecInteractionService;
 import service.node.NodeApiExecStoreTransactionService;
 
 import javax.inject.Inject;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -105,8 +106,13 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
             usedContracts.get(session.contractAddress).setInstance(instance);
         }
 
+        System.out.println("!!! external smart contract " + session.contractAddress + " initial hash state = " + Arrays.hashCode(usedContracts.get(
+                session.contractAddress).getContractData().getContractState()));
         final var executor = new MethodExecutor(session, instance);
-        final var methodResults = executor.executeIntoCurrentThread();
+
+        List<MethodResult> methodResults = null;
+        methodResults = executor.executeIntoCurrentThread();
+        System.out.println("!!! external smart contract " + session.contractAddress + " end hash state = " + Arrays.hashCode(usedContracts.get(session.contractAddress).getContractData().getContractState()));
         return new ReturnValue(serialize(executor.getSmartContractObject()),
                                methodResults.stream()
                                        .map(mr -> mr.getException() == null
