@@ -6,6 +6,7 @@ import exception.ContractExecutorException;
 import pojo.session.InvokeMethodSession;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import static com.credits.general.serialize.Serializer.deserialize;
@@ -56,10 +57,13 @@ class MethodExecutor extends LimitedExecutionMethod<Variant> {
     }
 
     private Variant invokeIntoCurrentThread(Variant... params) {
-        final var methodData = findInvokedMethodIntoContract(params);
-        final var method = methodData.method;
-        final var returnTypeName = method.getReturnType().getTypeName();
-        return runIntoCurrentThread(() -> toVariant(returnTypeName, method.invoke(instance, methodData.argValues)));
+        final Callable<Variant> call = () -> {
+            final var methodData = findInvokedMethodIntoContract(params);
+            final var method = methodData.method;
+            final var returnTypeName = method.getReturnType().getTypeName();
+            return toVariant(returnTypeName, method.invoke(instance, methodData.argValues));
+        };
+        return runIntoCurrentThread(call);
     }
 
     private Variant invokeIntoLimitTimeThread(Variant... params) {
