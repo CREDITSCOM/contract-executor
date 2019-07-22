@@ -15,10 +15,7 @@ import service.node.NodeApiExecStoreTransactionService;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.credits.client.node.util.NodeClientUtils.processApiResponse;
@@ -60,7 +57,9 @@ public class NodeApiExecInteractionServiceImpl implements NodeApiExecStoreTransa
         SmartContractGetResult result = nodeClient.getSmartContractBinary(accessId, decodeFromBASE58(addressBase58));
         processApiResponse(result.getStatus());
         SmartContractGetResultData data = createSmartContractGetResultData(result);
-        logger.debug(String.format("getExternalSmartContractByteCode: <--- result = %s", data));
+        logger.debug("getExternalSmartContractByteCode: <--- contractStateHashCode={}|stateCanModify={}",
+                     Arrays.hashCode(data.getContractState()),
+                     data.isStateCanModify());
         return data;
     }
 
@@ -99,5 +98,6 @@ public class NodeApiExecInteractionServiceImpl implements NodeApiExecStoreTransa
 
     @Override
     public List<EmitTransactionData> takeAwayEmittedTransactions(long threadId) {
-        return Optional.ofNullable(emittedTransactionsByThreadId.remove(threadId)).orElse(emptyList()); }
+        return Optional.ofNullable(emittedTransactionsByThreadId.remove(threadId)).orElse(emptyList());
+    }
 }
