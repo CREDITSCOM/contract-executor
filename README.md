@@ -6,7 +6,7 @@
 
 [![Twitter](https://img.shields.io/twitter/follow/creditscom.svg?label=Follow&style=social)](https://twitter.com/intent/follow?screen_name=creditscom)
 [![AGPL License](https://img.shields.io/github/license/CREDITSCOM/ewa.svg?color=green&style=plastic)](contract-executor/LICENSE)
-[![Build Status](http://161.156.96.18:8080/buildStatus/icon?job=ewa_build&lastBuild)](http://161.156.96.18:8080/job/ewa_build/lastBuild/)
+[![Build Status](http://89.111.33.166:8080/buildStatus/icon?job=ewa&lastBuild)](http://89.111.33.166:8080/job/ewa//lastBuild/)
 
 ## Contract Executor
 Contract Executor is app for deploy and execute methods of smart-contract
@@ -17,10 +17,73 @@ Contract Executor is app for deploy and execute methods of smart-contract
 - [Maven version 3.6.1](https://maven.apache.org/docs/3.6.1/release-notes.html) 
 
 ##### How to build
-For build  use following command on root project level
-```shell
-mvn clean install
-```
+##### Maven build compilation from sources files for contract-executor
+
+Maven - Is a tool that can be used for building and managing any Java-based project. It is a command-line tool for building Java (and other) programs developed by Apache.
+
+It's up to you to set up your prerequisites and environment to run Maven on Windows. Therefore, the major prerequisite needed is Java SDK installation because Maven is written in Java and primarily it is used to build Java programs.
+
+The installation of Apache Maven implies extracting the archive and adding the bin folder with the mvn command to the PATH.
+
+Detailed steps are:
+
+
+
+1. Download and install JDK and Add ‘JAVA_HOME’ Environment Variable. After installing Java you must add JAVA_HOME variable to JDK install folder. In addition, ‘java/bin’ directory must be included in ‘PATH’ variable.
+
+    
+
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/11.PNG" align="center">
+
+
+2. Download and install Maven and set the ‘M2_HOME’ and ‘MAVEN_HOME’ variables to maven installation folder. You can download Maven [here](https://maven.apache.org/download.cgi).
+
+    
+
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/22.PNG" align="center">
+
+
+
+3. Afterward, ‘maven/bin’ directory must be included in ‘PATH’ variable also. To run maven from command prompt, this is necessary so update the PATH variable with 'maven/bin' directory. 
+
+    
+
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/33.PNG" align="center">
+
+
+
+4. Check the installation by typing the following command in the console:
+``` mvn -version```
+
+    
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/44.PNG" align="center">
+
+
+
+5. Install [Git](https://git-scm.com/download/win) and clone the thrift-api-client repository from GitHub: [https://github.com/CREDITSCOM/thrift-api-client](https://github.com/CREDITSCOM/thrift-api-client)
+6. Change to the directory by using command:_ cd_
+7. Once on the directory write the following command in the prompt to build compilation from sources files: 
+```mvn clean install```
+
+
+
+<img src=".github/readme-images/5.PNG" align="center">
+
+
+8. Now, repeat the process for smart-contract-api repository. Clone it from the repository: [https://github.com/CREDITSCOM/smart-contract-api](https://github.com/CREDITSCOM/smart-contract-api)
+9. Change to the directory by using command:_ cd. _Then build compilation from sources by using the command: 
+```mvn clean install```
+
+<img src=".github/readme-images/6.PNG" align="center">
+
+
+10. Finally clone contract-executor repository from: [https://github.com/CREDITSCOM/contract-executor](https://github.com/CREDITSCOM/contract-executor)
+11. Change to the contract-executor directory and build it by using:```mvn clean install```. If all the steps were performed properly and secuently, errors won’t be.
+
+    
+
+<img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/77.PNG" align="center">
+
 <h3>Resources</h3>
 
 <a href="https://credits.com//">CREDITS Website</a>
