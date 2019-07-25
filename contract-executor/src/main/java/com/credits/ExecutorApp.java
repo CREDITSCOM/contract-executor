@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
+import java.util.Locale;
 
 public class ExecutorApp {
     private final static Logger logger = LoggerFactory.getLogger(ExecutorApp.class);
@@ -20,6 +21,7 @@ public class ExecutorApp {
 
     public static void main(String... args) {
         logger.info("Contract executor is starting...");
+        Locale.setDefault(Locale.US);
         var CEServer = DaggerExecutorApp_ContractExecutorServerBuilder.builder().build().getContractExecutorServer();
         CEServer.start();
     }
