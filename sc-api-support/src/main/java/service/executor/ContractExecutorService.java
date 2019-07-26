@@ -32,6 +32,8 @@ public interface ContractExecutorService {
 
     ReturnValue executeExternalSmartContract(InvokeMethodSession session, Map<String, ExternalSmartContract> usedContracts, ByteCodeContractClassLoader classLoader);
 
+    Object executeExternalSmartContact(SmartContractContext contractContext, String invokingContractAddress, String method, Object[] params);
+
     default ByteCodeContractClassLoader getSmartContractClassLoader() {
         return getClass().getClassLoader() instanceof ByteCodeContractClassLoader
             ? (ByteCodeContractClassLoader) getClass().getClassLoader()

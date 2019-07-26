@@ -12,6 +12,8 @@ import service.executor.ContractExecutorService;
 import service.node.NodeApiExecStoreTransactionService;
 
 import javax.inject.Singleton;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Module(includes = AppModule.class)
 public class CEServiceModule {
@@ -25,13 +27,19 @@ public class CEServiceModule {
 
     @Singleton
     @Provides
-    public NodeApiExecStoreTransactionService provideNodeApiExecInteractionService(NodeThriftApiExec nodeThriftApiClient) {
-        return new NodeApiExecInteractionServiceImpl(nodeThriftApiClient);
+    public NodeApiExecStoreTransactionService provideNodeApiExecInteractionService(NodeThriftApiExec nodeThriftApiClient, ExecutorService executorService) {
+        return new NodeApiExecInteractionServiceImpl(nodeThriftApiClient, executorService);
     }
 
     @Singleton
     @Provides
     public NodeThriftApiExec provideNodeThriftApi(ApplicationProperties properties) {
         return new NodeThriftApiExecClient(properties.nodeApiHost, properties.nodeApiPort);
+    }
+
+    @Singleton
+    @Provides
+    public ExecutorService provideExecutorService(){
+        return Executors.newCachedThreadPool();
     }
 }

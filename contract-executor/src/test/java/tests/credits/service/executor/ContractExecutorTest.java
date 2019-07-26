@@ -94,7 +94,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     void sendTransactionIntoContract() {
         executeSmartContract(smartContract, deployContractState, "createTransactionIntoContract", "10");
         verify(spyNodeApiExecService)
-                .sendTransaction(accessId, initiatorAddressBase58, smartContract.getContractAddressBase58(), 10, 1.0, new byte[0]);
+                .sendTransaction(accessId, initiatorAddressBase58, smartContract.getContractAddressBase58(), 10,  new byte[0]);
     }
 
     @Test

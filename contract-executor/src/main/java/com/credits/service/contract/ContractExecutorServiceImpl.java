@@ -5,20 +5,24 @@ import com.credits.general.pojo.ApiResponseCode;
 import com.credits.general.pojo.ApiResponseData;
 import com.credits.general.pojo.ByteCodeObjectData;
 import com.credits.general.pojo.MethodDescriptionData;
+import com.credits.general.thrift.generated.APIResponse;
 import com.credits.general.thrift.generated.Variant;
 import com.credits.general.util.GeneralConverter;
 import com.credits.general.util.compiler.CompilationException;
 import com.credits.general.util.compiler.InMemoryCompiler;
+import com.credits.general.util.variant.VariantConverter;
 import com.credits.secure.PermissionsManager;
 import com.credits.service.node.apiexec.NodeApiExecInteractionServiceImpl;
 import com.credits.thrift.utils.ContractExecutorUtils;
 import exception.ContractExecutorException;
+import exception.ExternalSmartContractException;
 import pojo.ExternalSmartContract;
 import pojo.ReturnValue;
 import pojo.apiexec.SmartContractGetResultData;
 import pojo.session.DeployContractSession;
 import pojo.session.InvokeMethodSession;
 import service.executor.ContractExecutorService;
+import service.executor.SmartContractContext;
 import service.node.NodeApiExecInteractionService;
 import service.node.NodeApiExecStoreTransactionService;
 
@@ -28,12 +32,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import static com.credits.general.pojo.ApiResponseCode.FAILURE;
 import static com.credits.general.serialize.Serializer.deserialize;
 import static com.credits.general.serialize.Serializer.serialize;
+import static com.credits.general.util.Utils.getClassType;
+import static com.credits.general.util.variant.VariantConverter.toVariant;
 import static com.credits.service.BackwardCompatibilityService.allVersionsSmartContractClass;
 import static com.credits.thrift.utils.ContractExecutorUtils.compileSmartContractByteCode;
 import static com.credits.thrift.utils.ContractExecutorUtils.findRootClass;
 import static com.credits.utils.ContractExecutorServiceUtils.*;
+import static java.lang.Long.MAX_VALUE;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -56,11 +64,13 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     public ReturnValue deploySmartContract(DeployContractSession session) throws ContractExecutorException {
         final var contractClass = findRootClass(compileClassesAndDropPermissions(session.byteCodeObjectDataList, getSmartContractClassLoader()));
         final var methodResult = new Deployer(session, contractClass).deploy();
-        final var newContractState = methodResult.getInvokedObject() != null ? serialize(methodResult.getInvokedObject()) : new byte[0];
+        final var newContractState = methodResult.getInvokedObject() != null
+                                     ? serialize(methodResult.getInvokedObject())
+                                     : new byte[0];
         return new ReturnValue(newContractState,
                                singletonList(methodResult.getException() == null
-                                                     ? createSuccessMethodResult(methodResult, nodeApiExecService)
-                                                     : createFailureMethodResult(methodResult, nodeApiExecService)),
+                                             ? createSuccessMethodResult(methodResult, nodeApiExecService)
+                                             : createFailureMethodResult(methodResult, nodeApiExecService)),
                                session.usedContracts);
     }
 
@@ -83,8 +93,8 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         return new ReturnValue(session.usedContracts.get(session.contractAddress).getContractData().getContractState(),
                                methodResults.stream()
                                        .map(mr -> mr.getException() == null
-                                               ? createSuccessMethodResult(mr, nodeApiExecService)
-                                               : createFailureMethodResult(mr, nodeApiExecService))
+                                                  ? createSuccessMethodResult(mr, nodeApiExecService)
+                                                  : createFailureMethodResult(mr, nodeApiExecService))
                                        .collect(toList()),
                                session.usedContracts);
     }
@@ -106,18 +116,15 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
             usedContracts.get(session.contractAddress).setInstance(instance);
         }
 
-        System.out.println("!!! external smart contract " + session.contractAddress + " initial hash state = " + Arrays.hashCode(usedContracts.get(
-                session.contractAddress).getContractData().getContractState()));
         final var executor = new MethodExecutor(session, instance);
 
         List<MethodResult> methodResults = null;
         methodResults = executor.executeIntoCurrentThread();
-        System.out.println("!!! external smart contract " + session.contractAddress + " end hash state = " + Arrays.hashCode(usedContracts.get(session.contractAddress).getContractData().getContractState()));
         return new ReturnValue(serialize(executor.getSmartContractObject()),
                                methodResults.stream()
                                        .map(mr -> mr.getException() == null
-                                               ? createSuccessExternalContractResult(mr)
-                                               : createFailureExternalContractResult(mr))
+                                                  ? createSuccessExternalContractResult(mr)
+                                                  : createFailureExternalContractResult(mr))
                                        .collect(toList()),
                                session.usedContracts);
     }
@@ -165,6 +172,60 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         return compileClassesAndDropPermissions(byteCodeObjectDataList, getSmartContractClassLoader());
     }
 
+    @Override
+    public Object executeExternalSmartContact(SmartContractContext contractContext, String invokingContractAddress, String method, Object[] params) {
+        if (method.equals("payable")) throw new ContractExecutorException("payable method cannot be called");
+
+        final var accessId = contractContext.getAccessId();
+        final var usedContracts = contractContext.getUsedContracts();
+        final var currentContractAddress = contractContext.getContractAddress();
+
+        final var usedContract = usedContracts.containsKey(invokingContractAddress)
+                                 ? usedContracts.get(invokingContractAddress)
+                                 : new ExternalSmartContract(nodeApiExecService.getExternalSmartContractByteCode(accessId, invokingContractAddress));
+        usedContracts.put(invokingContractAddress, usedContract);
+
+        Variant[][] variantParams = null;
+        if (params != null) {
+            variantParams = new Variant[1][params.length];
+            for (int i = 0; i < params.length; i++) {
+                final Object param = params[i];
+                variantParams[0][i] = toVariant(getClassType(param), param);
+            }
+        }
+
+        final ReturnValue returnValue = executeExternalSmartContract(
+                new InvokeMethodSession(
+                        accessId,
+                        currentContractAddress,
+                        invokingContractAddress,
+                        usedContract.getContractData().getByteCodeObjects(),
+                        usedContract.getContractData().getContractState(),
+                        method,
+                        variantParams,
+                        MAX_VALUE),
+                usedContracts,
+                (ByteCodeContractClassLoader) contractContext.getContractClassLoader());
+
+        final APIResponse returnStatus = returnValue.executeResults.get(0).status;
+        if (returnStatus.code == FAILURE.code) {
+            throw new ExternalSmartContractException(
+                    returnStatus.message + ". Contract address: " + currentContractAddress + ". Method: " + method + ". Args: " + Arrays.toString(
+                            params));
+        }
+
+        if (!usedContract.getContractData().isStateCanModify() && !Arrays.equals(
+                usedContract.getContractData().getContractState(),
+                returnValue.newContractState)) {
+            throw new ContractExecutorException("smart executor \"" + currentContractAddress + "\" can't be modify");
+        }
+        usedContract.getContractData().setContractState(returnValue.newContractState);
+
+        Variant result = returnValue.executeResults.get(0).result;
+        return result == null
+               ? toVariant("", Void.TYPE)
+               : VariantConverter.toObject(result);
+    }
 
     private void addThisContractToUsedContracts(InvokeMethodSession session, Object instance) {
         ExternalSmartContract usedContract = new ExternalSmartContract(

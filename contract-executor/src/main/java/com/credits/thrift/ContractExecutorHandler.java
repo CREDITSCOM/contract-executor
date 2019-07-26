@@ -15,7 +15,6 @@ import service.executor.ContractExecutorService;
 
 import javax.inject.Inject;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -70,11 +69,6 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
             executeByteCodeResult = new ExecuteByteCodeResult(failureApiResponse(e), emptyList());
         }
 
-        executeByteCodeResult
-                .getResults()
-                .forEach(it -> it.getContractsState().forEach((key, value) ->
-                                                                      System.out.println("$$$ external smart contract " + encodeToBASE58(key.array()) + "end hash state = " +
-                                                                                                 Arrays.hashCode(value.array()))));
         logger.debug("executeByteCode --> {}", executeByteCodeResult);
         return executeByteCodeResult;
     }

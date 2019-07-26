@@ -15,6 +15,8 @@ import java.io.FilePermission;
 import java.security.Permission;
 import java.security.Permissions;
 import java.util.Enumeration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -30,10 +32,15 @@ public class TestModule {
 
     @Provides
     @Singleton
-    NodeApiExecStoreTransactionService provideMockNodeApiStoreTransactionService(NodeThriftApiExec nodeThriftApiExec) {
-        return spy(new NodeApiExecInteractionServiceImpl(nodeThriftApiExec));
+    NodeApiExecStoreTransactionService provideMockNodeApiStoreTransactionService(NodeThriftApiExec nodeThriftApiExec, ExecutorService executorService) {
+        return spy(new NodeApiExecInteractionServiceImpl(nodeThriftApiExec, executorService));
     }
 
+    @Provides
+    @Singleton
+    ExecutorService provideExecutorService(){
+        return Executors.newCachedThreadPool();
+    }
     @Provides
     @Singleton
     NodeThriftApiExec provideNodeThriftApiExecService(){
