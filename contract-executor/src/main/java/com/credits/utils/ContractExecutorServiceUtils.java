@@ -15,7 +15,11 @@ import com.credits.service.contract.MethodResult;
 import exception.ContractExecutorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pojo.ExternalSmartContract;
 import pojo.SmartContractMethodResult;
+import pojo.session.InvokeMethodSession;
+import service.executor.ContractExecutorService;
+import service.node.NodeApiExecInteractionService;
 import service.node.NodeApiExecStoreTransactionService;
 
 import java.lang.annotation.Annotation;
@@ -23,15 +27,18 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
 import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
+import static com.credits.general.util.Utils.getClassType;
 import static com.credits.general.util.Utils.rethrowUnchecked;
 import static com.credits.general.util.variant.VariantConverter.toVariant;
 import static com.credits.thrift.utils.ContractExecutorUtils.OBJECT_METHODS;
 import static java.util.Arrays.stream;
 import static java.util.Collections.*;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.beanutils.MethodUtils.getMatchingAccessibleMethod;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
@@ -84,6 +91,7 @@ public class ContractExecutorServiceUtils {
                                              mr.getSpentCpuTime(),
                                              emptyList());
     }
+
     public static SmartContractMethodResult createSuccessMethodResult(MethodResult mr, NodeApiExecStoreTransactionService nodeApiExecService) {
         return new SmartContractMethodResult(SUCCESS_API_RESPONSE,
                                              mr.getReturnValue(),
@@ -148,6 +156,45 @@ public class ContractExecutorServiceUtils {
                     field.setAccessible(true);
                     field.set(instance, value);
                 }));
+    }
+
+    public static void initStaticContractFields(NodeApiExecInteractionService nodeApiExecService,
+                                                ContractExecutorService executorService,
+                                                ExecutorService threadPoolExecutor,
+                                                Class<?> contractClass) {
+        initializeSmartContractField("nodeApiService", nodeApiExecService, contractClass, null);
+        initializeSmartContractField("contractExecutorService", executorService, contractClass, null);
+        initializeSmartContractField("cachedPool", threadPoolExecutor, contractClass, null);
+    }
+
+    public static void initNonStaticContractFields(long accessId,
+                                                   String initiatorAddress,
+                                                   Map<String, ExternalSmartContract> usedContracts,
+                                                   Class<?> contractClass,
+                                                   Object instance) {
+        requireNonNull(instance, "instance can't be null for not static fields");
+        initializeSmartContractField("initiator", initiatorAddress, contractClass, instance);
+        initializeSmartContractField("accessId", accessId, contractClass, instance);
+        initializeSmartContractField("usedContracts", usedContracts, contractClass, instance);
+    }
+
+    public static void initNonStaticContractFields(InvokeMethodSession session, Class<?> contractClass, Object instance) {
+        initNonStaticContractFields(session.accessId, session.initiatorAddress, session.usedContracts, contractClass, instance);
+    }
+    public static Variant[][] variantArrayOf(Object[]... params) {
+        return stream(params)
+                .map(p -> stream(p)
+                        .map(pp -> toVariant(getClassType(pp), pp))
+                        .collect(toList()).toArray(Variant[]::new))
+                .collect(toList()).toArray(Variant[][]::new);
+    }
+
+    public static Variant[][] variantArrayOf(Object... params) {
+        return new Variant[][]{stream(params).map(p -> toVariant(getClassType(p), p)).collect(toList()).toArray(Variant[]::new)};
+    }
+
+    public static List<Variant> variantListOf(Object... params) {
+        return stream(params).map(p -> toVariant(getClassType(p), p)).collect(toList());
     }
 
     public static List<MethodDescriptionData> createMethodDescriptionListByClass(Class<?> contractClass) {

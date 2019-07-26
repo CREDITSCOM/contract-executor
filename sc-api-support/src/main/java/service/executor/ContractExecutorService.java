@@ -6,7 +6,6 @@ import com.credits.general.pojo.MethodDescriptionData;
 import com.credits.general.thrift.generated.Variant;
 import com.credits.general.util.compiler.CompilationException;
 import exception.ContractExecutorException;
-import pojo.ExternalSmartContract;
 import pojo.ReturnValue;
 import pojo.session.DeployContractSession;
 import pojo.session.InvokeMethodSession;
@@ -29,8 +28,6 @@ public interface ContractExecutorService {
     List<Class<?>> buildContractClass(List<ByteCodeObjectData> byteCodeObjectDataList);
 
     Map<String, Variant> getContractVariables(List<ByteCodeObjectData> contractBytecode, byte[] contractState) throws ContractExecutorException;
-
-    ReturnValue executeExternalSmartContract(InvokeMethodSession session, Map<String, ExternalSmartContract> usedContracts, ByteCodeContractClassLoader classLoader);
 
     Object executeExternalSmartContact(SmartContractContext contractContext, String invokingContractAddress, String method, Object[] params);
 

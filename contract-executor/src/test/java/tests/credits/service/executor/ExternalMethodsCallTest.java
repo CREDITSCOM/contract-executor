@@ -30,21 +30,16 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
 
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, false);
 
-        final ReturnValue returnValue = executeExternalSmartContract(
-                smartContract,
-                deployContractState,
-                "externalCall",
-                calledSmartContractAddress,
-                "getTotal");
+        final int total = (int) executeExternalSmartContract(smartContract, deployContractState, "externalCall", calledSmartContractAddress, "getTotal");
 
-        final SmartContractMethodResult methodResult = returnValue.executeResults.get(0);
-
-        assertThat(methodResult.status.message, is("success"));
-        assertThat(methodResult.result.getV_int(), is(0));
-        assertThat(returnValue.newContractState, equalTo(deployContractState));
-        assertThat(
-                returnValue.newContractState,
-                equalTo(returnValue.externalSmartContracts.get(calledSmartContractAddress).getContractData().getContractState()));
+        assertThat(total, is(10));
+//        final SmartContractMethodResult methodResult = returnValue.executeResults.get(0);
+//
+//        assertThat(methodResult.status.message, is("success"));
+//        assertThat(methodResult.result.getV_int(), is(0));
+//        assertThat(returnValue.newContractState, equalTo(deployContractState));
+//        assertThat(returnValue.newContractState,
+//                equalTo(returnValue.externalSmartContracts.get(calledSmartContractAddress).getContractData().getContractState()));
     }
 
     @Test
@@ -52,7 +47,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
     public void setter_method_must_return_new_states() {
         setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
 
-        final ReturnValue returnValue = executeExternalSmartContract(
+        executeExternalSmartContract(
                 smartContract,
                 deployContractState,
                 "externalCallChangeState",
@@ -64,8 +59,7 @@ public class ExternalMethodsCallTest extends ExternalMethodCallTestContext {
 
         assertThat(methodResult.status.message, is("success"));
         assertThat(returnValue.newContractState, equalTo(deployContractState));
-        assertThat(
-                returnValue.newContractState,
+        assertThat(returnValue.newContractState,
                 not(equalTo(returnValue.externalSmartContracts.get(calledSmartContractAddress).getContractData().getContractState())));
     }
 

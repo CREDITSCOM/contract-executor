@@ -21,8 +21,9 @@ public class CEServiceModule {
     @Singleton
     @Provides
     public ContractExecutorService provideContractExecutorService(NodeApiExecStoreTransactionService nodeApiExecService,
-                                                                  PermissionsManager permissionManager) {
-        return new ContractExecutorServiceImpl(nodeApiExecService, permissionManager);
+                                                                  PermissionsManager permissionManager,
+                                                                  ExecutorService executorService) {
+        return new ContractExecutorServiceImpl(nodeApiExecService, permissionManager, executorService);
     }
 
     @Singleton
