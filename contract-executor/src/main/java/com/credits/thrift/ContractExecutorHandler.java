@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.credits.general.util.GeneralConverter.*;
-import static com.credits.ioc.Injector.INJECTOR;
 import static com.credits.scapi.misc.TokenStandardId.NOT_A_TOKEN;
 import static com.credits.thrift.utils.ContractExecutorUtils.*;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
@@ -37,7 +36,6 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
 
     @Inject
     public ContractExecutorHandler(ContractExecutorService contractExecutorService) {
-        INJECTOR.component.inject(this);
         ceService = contractExecutorService;
     }
 

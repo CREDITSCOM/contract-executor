@@ -27,23 +27,25 @@ public class TestModule {
     @Provides
     @Singleton
     ContractExecutorService provideContractExecutorService(NodeApiExecStoreTransactionService nodeApi, PermissionsManager permissionsManager) {
-        return spy(new ContractExecutorServiceImpl(nodeApi, permissionsManager));
+        return spy(new ContractExecutorServiceImpl(nodeApi, permissionsManager, Executors.newCachedThreadPool()));
     }
 
     @Provides
     @Singleton
-    NodeApiExecStoreTransactionService provideMockNodeApiStoreTransactionService(NodeThriftApiExec nodeThriftApiExec, ExecutorService executorService) {
+    NodeApiExecStoreTransactionService provideMockNodeApiStoreTransactionService(NodeThriftApiExec nodeThriftApiExec,
+                                                                                 ExecutorService executorService) {
         return spy(new NodeApiExecInteractionServiceImpl(nodeThriftApiExec, executorService));
     }
 
     @Provides
     @Singleton
-    ExecutorService provideExecutorService(){
+    ExecutorService provideExecutorService() {
         return Executors.newCachedThreadPool();
     }
+
     @Provides
     @Singleton
-    NodeThriftApiExec provideNodeThriftApiExecService(){
+    NodeThriftApiExec provideNodeThriftApiExecService() {
         return mock(NodeThriftApiExec.class);
     }
 

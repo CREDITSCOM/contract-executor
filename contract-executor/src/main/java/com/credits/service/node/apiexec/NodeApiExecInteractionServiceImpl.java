@@ -6,7 +6,6 @@ import com.credits.client.node.thrift.generated.WalletBalanceGetResult;
 import com.credits.client.node.thrift.generated.WalletIdGetResult;
 import com.credits.general.thrift.generated.Amount;
 import com.credits.general.util.Function;
-import com.credits.ioc.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pojo.EmitTransactionData;
@@ -36,7 +35,6 @@ public class NodeApiExecInteractionServiceImpl implements NodeApiExecStoreTransa
     @Inject
     public NodeApiExecInteractionServiceImpl(NodeThriftApiExec nodeApiClient, ExecutorService cachedPool) {
         nodeClient = nodeApiClient;
-        Injector.INJECTOR.component.inject(this);
         this.cachedPool = cachedPool;
     }
 

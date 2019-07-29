@@ -170,16 +170,16 @@ public class ContractExecutorServiceUtils {
     public static void initNonStaticContractFields(long accessId,
                                                    String initiatorAddress,
                                                    Map<String, ExternalSmartContract> usedContracts,
-                                                   Class<?> contractClass,
                                                    Object instance) {
         requireNonNull(instance, "instance can't be null for not static fields");
+        final var contractClass = instance.getClass();
         initializeSmartContractField("initiator", initiatorAddress, contractClass, instance);
         initializeSmartContractField("accessId", accessId, contractClass, instance);
         initializeSmartContractField("usedContracts", usedContracts, contractClass, instance);
     }
 
-    public static void initNonStaticContractFields(InvokeMethodSession session, Class<?> contractClass, Object instance) {
-        initNonStaticContractFields(session.accessId, session.initiatorAddress, session.usedContracts, contractClass, instance);
+    public static void initNonStaticContractFields(InvokeMethodSession session, Object instance) {
+        initNonStaticContractFields(session.accessId, session.initiatorAddress, session.usedContracts, instance);
     }
     public static Variant[][] variantArrayOf(Object[]... params) {
         return stream(params)

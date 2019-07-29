@@ -71,10 +71,9 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     @Override
     public ReturnValue executeSmartContract(InvokeMethodSession session) throws ContractExecutorException {
         final var contractClassLoader = getSmartContractClassLoader();
-        final var contractClass = findRootClass(compileClassesAndDropPermissions(session.byteCodeObjectDataList, contractClassLoader));
         final var instance = deserialize(session.contractState, contractClassLoader);
 
-        initNonStaticContractFields(session, contractClass, instance);
+        initNonStaticContractFields(session, instance);
         addThisContractToUsedContracts(session, instance);
         return executeContractMethod(session, instance);
     }

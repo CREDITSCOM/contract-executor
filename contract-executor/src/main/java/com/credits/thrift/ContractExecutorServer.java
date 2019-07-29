@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
-import static com.credits.ioc.Injector.INJECTOR;
-
 public class ContractExecutorServer implements Runnable {
 
     private final static Logger logger = LoggerFactory.getLogger(ContractExecutorServer.class);
@@ -24,9 +22,8 @@ public class ContractExecutorServer implements Runnable {
     @SuppressWarnings("unchecked")
     @Inject
     public ContractExecutorServer(ContractExecutorHandler contractExecutorHandler, ApplicationProperties applicationProperties) {
-        INJECTOR.component.inject(this);
         processor = new ContractExecutor.Processor(contractExecutorHandler);
-        this.properties = applicationProperties;
+        properties = applicationProperties;
     }
 
     public void start(){

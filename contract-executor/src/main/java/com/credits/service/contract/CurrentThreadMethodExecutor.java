@@ -4,18 +4,19 @@ import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.service.node.apiexec.NodeApiExecInteractionServiceImpl;
 import exception.ContractExecutorException;
 import exception.ExternalSmartContractException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import pojo.ExternalSmartContract;
 import service.executor.SmartContractContext;
 
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.credits.general.serialize.Serializer.deserialize;
 import static com.credits.general.serialize.Serializer.serialize;
 import static com.credits.ioc.Injector.INJECTOR;
-import static com.credits.thrift.utils.ContractExecutorUtils.compileSmartContractByteCode;
-import static com.credits.thrift.utils.ContractExecutorUtils.findRootClass;
+import static com.credits.thrift.utils.ContractExecutorUtils.loadClassesToClassloader;
 import static com.credits.utils.ContractExecutorServiceUtils.initNonStaticContractFields;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
@@ -65,10 +66,12 @@ public class CurrentThreadMethodExecutor {
             final var method = getMatchingAccessibleMethod(instance.getClass(),
                                                            methodName,
                                                            stream(params).map(Object::getClass).toArray(Class[]::new));
-            return method.invoke(params);
+            return Optional.ofNullable(method)
+                    .orElseThrow(() -> new NoSuchMethodException("Cannot find a method by name and parameters specified."))
+                    .invoke(instance, params);
         } catch (Throwable e) {
-            throw new ExternalSmartContractException(
-                    "Contract address: " + invokingContractAddress + ". Method :" + methodName + ". Args: " + Arrays.toString(params));
+            throw new ExternalSmartContractException(ExceptionUtils.getRootCauseMessage(e) + ". Contract address: " + invokingContractAddress + ". " +
+                                                             "Method:" + methodName + ". Args: " + Arrays.toString(params));
         }
     }
 
@@ -82,11 +85,10 @@ public class CurrentThreadMethodExecutor {
     private Object createInstance(ExternalSmartContract invokingContract) {
         Object instance;
         requireNonNull(classLoader, "can't get contract classloader");
-        final var allContractClasses = compileSmartContractByteCode(invokingContract.getContractData().getByteCodeObjects(), classLoader);
-        final var contractClass = findRootClass(allContractClasses);
+        loadClassesToClassloader(invokingContract.getContractData().getByteCodeObjects(), classLoader);
         final var contractState = invokingContract.getContractData().getContractState();
         instance = deserialize(contractState, classLoader);
-        initNonStaticContractFields(accessId, currentContractAddress, usedContracts, contractClass, instance);
+        initNonStaticContractFields(accessId, currentContractAddress, usedContracts, instance);
         usedContracts.get(invokingContractAddress).setInstance(instance);
         return instance;
     }

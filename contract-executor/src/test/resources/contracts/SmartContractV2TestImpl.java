@@ -24,4 +24,7 @@ public class SmartContractV2 extends SmartContract {
     public Object externalCall(@ContractAddress(id = 0) String address, @ContractMethod(id = 0) String method) {
         return invokeExternalContract(address, method);
     }
+    public Object externalCall(@ContractAddress(id = 0) String address, @ContractMethod(id = 0) String method, int params) {
+        return invokeExternalContract(address, method, params);
+    }
 }

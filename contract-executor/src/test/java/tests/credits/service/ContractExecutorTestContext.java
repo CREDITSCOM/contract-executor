@@ -4,6 +4,7 @@ import com.credits.client.executor.thrift.generated.apiexec.SmartContractGetResu
 import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ApiResponseData;
 import com.credits.general.thrift.generated.Variant;
+import com.credits.ioc.Injector;
 import com.credits.service.node.apiexec.NodeThriftApiExec;
 import com.credits.utils.ContractExecutorServiceUtils;
 import org.junit.jupiter.api.TestInfo;
@@ -50,7 +51,9 @@ public abstract class ContractExecutorTestContext {
     private UseContract useContract;
 
     protected void setUp() throws Exception {
-        DaggerTestComponent.builder().build().inject(this);
+        final var testComponent = DaggerTestComponent.builder().build();
+        testComponent.inject(this);
+        Injector.INJECTOR.component = testComponent;
         when(ceService.getSmartContractClassLoader()).thenReturn(byteCodeContractClassLoader);
     }
 
