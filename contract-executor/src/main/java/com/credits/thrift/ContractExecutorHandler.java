@@ -50,10 +50,11 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         try {
             if (logger.isDebugEnabled()) {
                 logger.debug(
-                        "<-- executeByteCode: initiatorAddress={}|contractAddress={}|contractState={} bytes|methodHeaders={}|executionTime={}|version={}",
+                        "<-- executeByteCode: initiatorAddress={}|contractAddress={}|contractState={} bytes|bytecodeObjects={}|methodHeaders={}|executionTime={}|version={}",
                         encodeToBASE58(initiatorAddress.array()),
                         encodeToBASE58(invokedContract.contractAddress.array()),
                         invokedContract.object.instance.array().length,
+                        invokedContract.object.byteCodeObjects.size(),
                         methodHeaders,
                         executionTime,
                         version);
@@ -112,19 +113,19 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
             validateVersion(version);
 
             ReturnValue returnValue = classObject.instance == null || classObject.instance.array().length == 0
-                    ? ceService.deploySmartContract(new DeployContractSession(accessId,
-                                                                              encodeToBASE58(initiatorAddress.array()),
-                                                                              encodeToBASE58(invokedContract.contractAddress.array()),
-                                                                              byteCodeObjectsToByteCodeObjectsData(classObject.byteCodeObjects),
-                                                                              executionTime))
-                    : ceService.executeSmartContract(new InvokeMethodSession(accessId,
-                                                                             encodeToBASE58(initiatorAddress.array()),
-                                                                             encodeToBASE58(invokedContract.contractAddress.array()),
-                                                                             byteCodeObjectsToByteCodeObjectsData(classObject.byteCodeObjects),
-                                                                             classObject.instance.array(),
-                                                                             method,
-                                                                             paramsArray,
-                                                                             executionTime));
+                                      ? ceService.deploySmartContract(new DeployContractSession(accessId,
+                                                                                                encodeToBASE58(initiatorAddress.array()),
+                                                                                                encodeToBASE58(invokedContract.contractAddress.array()),
+                                                                                                byteCodeObjectsToByteCodeObjectsData(classObject.byteCodeObjects),
+                                                                                                executionTime))
+                                      : ceService.executeSmartContract(new InvokeMethodSession(accessId,
+                                                                                               encodeToBASE58(initiatorAddress.array()),
+                                                                                               encodeToBASE58(invokedContract.contractAddress.array()),
+                                                                                               byteCodeObjectsToByteCodeObjectsData(classObject.byteCodeObjects),
+                                                                                               classObject.instance.array(),
+                                                                                               method,
+                                                                                               paramsArray,
+                                                                                               executionTime));
 
             byteCodeMultipleResult.results = returnValue.executeResults.stream().map(rv -> {
                 final GetterMethodResult getterMethodResult = new GetterMethodResult(rv.status);
