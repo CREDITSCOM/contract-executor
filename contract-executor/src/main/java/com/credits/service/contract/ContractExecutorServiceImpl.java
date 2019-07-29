@@ -31,8 +31,7 @@ import static com.credits.general.serialize.Serializer.deserialize;
 import static com.credits.general.serialize.Serializer.serialize;
 import static com.credits.service.BackwardCompatibilityService.allVersionsSmartContractClass;
 import static com.credits.service.contract.CurrentThreadMethodExecutor.createCurrentThreadMethodExecutor;
-import static com.credits.thrift.utils.ContractExecutorUtils.compileSmartContractByteCode;
-import static com.credits.thrift.utils.ContractExecutorUtils.findRootClass;
+import static com.credits.thrift.utils.ContractExecutorUtils.*;
 import static com.credits.utils.ContractExecutorServiceUtils.*;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
@@ -71,6 +70,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     @Override
     public ReturnValue executeSmartContract(InvokeMethodSession session) throws ContractExecutorException {
         final var contractClassLoader = getSmartContractClassLoader();
+        loadClassesToClassloader(session.byteCodeObjectDataList,contractClassLoader);
         final var instance = deserialize(session.contractState, contractClassLoader);
 
         initNonStaticContractFields(session, instance);
