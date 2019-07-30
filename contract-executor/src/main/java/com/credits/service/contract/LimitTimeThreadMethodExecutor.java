@@ -14,12 +14,12 @@ import static com.credits.utils.ContractExecutorServiceUtils.getMethodArgumentsV
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 
-class MethodExecutor extends LimitedExecutionMethod<Variant> {
+class LimitTimeThreadMethodExecutor extends LimitedExecutionMethod<Variant> {
     private final InvokeMethodSession session;
     private Object instance;
     private final ClassLoader classLoader;
 
-    public MethodExecutor(InvokeMethodSession session, Object contractInstance) {
+    public LimitTimeThreadMethodExecutor(InvokeMethodSession session, Object contractInstance) {
         super(session);
         this.session = session;
         this.instance = contractInstance;
@@ -32,32 +32,19 @@ class MethodExecutor extends LimitedExecutionMethod<Variant> {
                 : invokeMultipleMethod();
     }
 
-    public List<MethodResult> executeIntoCurrentThread() {
-        return List.of(prepareResult(invokeIntoCurrentThread(session.paramsTable[0])));
-    }
-
-    public Object getSmartContractObject() {
-        return instance;
-    }
-
     private List<MethodResult> invokeSingleMethod() {
         return List.of(prepareResult(invokeIntoLimitTimeThread(session.paramsTable[0])));
     }
 
     private List<MethodResult> invokeMultipleMethod() {
-        return stream(session.paramsTable).map(params -> prepareResult(invokeUsingPrimaryContractState(params))).collect(Collectors.toList());
+        final var results = stream(session.paramsTable).map(params -> prepareResult(invokeUsingPrimaryContractState(params))).collect(Collectors.toList());
+        session.usedContracts.get(session.contractAddress).setInstance(instance);
+        return results;
     }
 
     private Variant invokeUsingPrimaryContractState(Variant... params) {
         instance = deserialize(session.contractState, instance.getClass().getClassLoader());
         return invokeIntoLimitTimeThread(params);
-    }
-
-    private Variant invokeIntoCurrentThread(Variant... params) {
-        final var methodData = findInvokedMethodIntoContract(params);
-        final var method = methodData.method;
-        final var returnTypeName = method.getReturnType().getTypeName();
-        return runIntoCurrentThread(() -> toVariant(returnTypeName, method.invoke(instance, methodData.argValues)));
     }
 
     private Variant invokeIntoLimitTimeThread(Variant... params) {

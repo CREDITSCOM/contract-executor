@@ -3,6 +3,7 @@ package tests.credits;
 import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ByteCodeObjectData;
 import com.credits.general.thrift.generated.ByteCodeObject;
+import org.apache.commons.lang3.RandomUtils;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -120,7 +121,7 @@ public class SmartContactTestData {
             this.contractAddressBase58 = this.contractAddressBase58 == null
                     ? contractAddressBinary != null
                     ? encodeToBASE58(contractAddressBinary.array())
-                    : "5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpd"
+                    : encodeToBASE58(RandomUtils.nextBytes(32))
                     : this.contractAddressBase58;
             this.contractAddressBinary = this.contractAddressBinary == null
                     ? wrap(decodeFromBASE58(contractAddressBase58))

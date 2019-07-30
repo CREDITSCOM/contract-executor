@@ -5,7 +5,7 @@ import com.credits.client.executor.thrift.generated.apiexec.SmartContractGetResu
 import com.credits.client.node.thrift.generated.WalletBalanceGetResult;
 import com.credits.client.node.thrift.generated.WalletIdGetResult;
 import com.credits.general.thrift.generated.Amount;
-import com.credits.ioc.Injector;
+import com.credits.general.util.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pojo.EmitTransactionData;
@@ -15,11 +15,9 @@ import service.node.NodeApiExecStoreTransactionService;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 import static com.credits.client.node.util.NodeClientUtils.processApiResponse;
 import static com.credits.general.util.GeneralConverter.amountToBigDecimal;
@@ -32,20 +30,23 @@ public class NodeApiExecInteractionServiceImpl implements NodeApiExecStoreTransa
 
     private final NodeThriftApiExec nodeClient;
     private final Map<Long, List<EmitTransactionData>> emittedTransactionsByThreadId = new ConcurrentHashMap<>();
+    private ExecutorService cachedPool;
 
     @Inject
-    public NodeApiExecInteractionServiceImpl(NodeThriftApiExec nodeApiClient) {
+    public NodeApiExecInteractionServiceImpl(NodeThriftApiExec nodeApiClient, ExecutorService cachedPool) {
         nodeClient = nodeApiClient;
-        Injector.INJECTOR.component.inject(this);
+        this.cachedPool = cachedPool;
     }
 
     @Override
     public byte[] getSeed(long accessId) {
-        logger.debug("getSeed: ---> accessId = {}", accessId);
-        GetSeedResult seed = nodeClient.getSeed(accessId);
-        processApiResponse(seed.getStatus());
-        logger.debug("getSeed: <--- seed = {}", seed.getSeed());
-        return seed.getSeed();
+        return callService(() -> {
+            logger.debug("getSeed: ---> accessId = {}", accessId);
+            GetSeedResult seed = nodeClient.getSeed(accessId);
+            processApiResponse(seed.getStatus());
+            logger.debug("getSeed: <--- seed = {}", seed.getSeed());
+            return seed.getSeed();
+        });
     }
 
     @Override
@@ -60,7 +61,9 @@ public class NodeApiExecInteractionServiceImpl implements NodeApiExecStoreTransa
         SmartContractGetResult result = nodeClient.getSmartContractBinary(accessId, decodeFromBASE58(addressBase58));
         processApiResponse(result.getStatus());
         SmartContractGetResultData data = createSmartContractGetResultData(result);
-        logger.debug(String.format("getExternalSmartContractByteCode: <--- result = %s", data));
+        logger.debug("getExternalSmartContractByteCode: <--- contractStateHashCode={}|stateCanModify={}",
+                     Arrays.hashCode(data.getContractState()),
+                     data.isStateCanModify());
         return data;
     }
 
@@ -88,16 +91,28 @@ public class NodeApiExecInteractionServiceImpl implements NodeApiExecStoreTransa
 
     @Override
     public BigDecimal getBalance(String addressBase58) {
-        logger.info(String.format("getBalance: ---> address = %s", addressBase58));
-        WalletBalanceGetResult result = nodeClient.getBalance(decodeFromBASE58(addressBase58));
-        processApiResponse(result.getStatus());
-        Amount amount = result.getBalance();
-        BigDecimal balance = amountToBigDecimal(amount);
-        logger.info(String.format("getBalance: <--- balance = %s", balance));
-        return balance;
+        return callService(() -> {
+            logger.info(String.format("getBalance: ---> address = %s", addressBase58));
+            WalletBalanceGetResult result = nodeClient.getBalance(decodeFromBASE58(addressBase58));
+            processApiResponse(result.getStatus());
+            Amount amount = result.getBalance();
+            BigDecimal balance = amountToBigDecimal(amount);
+            logger.info(String.format("getBalance: <--- balance = %s", balance));
+            return balance;
+        });
     }
 
     @Override
     public List<EmitTransactionData> takeAwayEmittedTransactions(long threadId) {
-        return Optional.ofNullable(emittedTransactionsByThreadId.remove(threadId)).orElse(emptyList()); }
+        return Optional.ofNullable(emittedTransactionsByThreadId.remove(threadId)).orElse(emptyList());
+    }
+
+
+    private <R> R callService(Function<R> method) {
+        try {
+            return cachedPool.submit(method::apply).get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

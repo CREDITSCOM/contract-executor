@@ -16,7 +16,6 @@ import pojo.ReturnValue;
 import tests.credits.UseContract;
 import tests.credits.service.ContractExecutorTestContext;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
@@ -31,6 +30,7 @@ import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONS
 import static java.nio.ByteBuffer.wrap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
@@ -95,7 +95,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     void sendTransactionIntoContract() {
         executeSmartContract(smartContract, deployContractState, "createTransactionIntoContract", "10");
         verify(spyNodeApiExecService)
-                .sendTransaction(accessId, initiatorAddressBase58, smartContract.getContractAddressBase58(), 10, 1.0, new byte[0]);
+                .sendTransaction(accessId, initiatorAddressBase58, smartContract.getContractAddressBase58(), 10, new byte[0]);
     }
 
     @Test
@@ -158,7 +158,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     @Test
     @DisplayName("compileContractClass must be throw compilation exception with explanations")
     void compileContractTest1() {
-        Throwable  exception = assertThrows(CompilationException.class, () -> ceService.compileContractClass("class MyContract {\n MyContract()\n}"));
+        Throwable exception = assertThrows(CompilationException.class, () -> ceService.compileContractClass("class MyContract {\n MyContract()\n}"));
         assertThat(exception.getMessage(), containsString("compilation errors in class MyContract :\n2:';' expected"));
     }
 
@@ -229,7 +229,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     @Test
     @UseContract(value = TroubleConstructor, deploy = false)
     @DisplayName("exception into constructor must be return fail status with exception method")
-    void constructorWithException() throws IOException {
+    void constructorWithException() {
         final var result = deploySmartContract(smartContract).executeResults.get(0);
 
         assertThat(result.status.code, is(FAILURE.code));
@@ -239,7 +239,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     @Test
     @UseContract(SmartContractV2TestImpl)
     @DisplayName("v2.SmartContract must be compiled and executable")
-    void executePayableSmartContractV2() throws IOException {
+    void executePayableSmartContractV2() {
         final var result = executeSmartContract(smartContract, deployContractState, "payable", BigDecimal.ONE, new byte[0]).executeResults.get(0);
 
         assertThat(result.status.code, is(SUCCESS.code));
@@ -302,6 +302,170 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         assertThat(emittedTransactions.get(0), is(firstTransaction));
         assertThat(emittedTransactions.get(1), is(secondTransaction));
     }
+
+    @Test
+    @UseContract(SmartContractV2TestImpl)
+    @DisplayName("invocation external contracts should change contract state")
+    void changeExternalSmartContractStates() {
+        final var externalContract = smartContractsRepository.get(SmartContractV0TestImpl);
+        final var externalContractAddress = externalContract.getContractAddressBase58();
+        final var deployExternalContractState = deploySmartContract(externalContract).newContractState;
+
+        setNodeResponseGetSmartContractByteCode(externalContract, deployExternalContractState, true);
+
+        final var result = executeSmartContract(smartContract,
+                                                deployContractState,
+                                                "externalCall",
+                                                externalContractAddress,
+                                                "add10Tokens");
+
+        final var executionResult = result.executeResults.get(0);
+        final var changedExternalContractState = result.externalSmartContracts.get(externalContractAddress).getContractData().getContractState();
+        final var add10TokensReturnValue = getFirstReturnValue(result).getV_int_box();//fixme int_box instead int
+
+        assertThat(executionResult.status, is(SUCCESS_API_RESPONSE));
+        assertThat(add10TokensReturnValue, is(10));
+        assertThat(changedExternalContractState, not(equalTo(deployExternalContractState)));
+        assertThat(result.newContractState, equalTo(deployContractState));
+    }
+
+
+    @Test
+    @UseContract(SmartContractV2TestImpl)
+    @DisplayName("external contract state can't be change if exception occurred into the external contract ")
+    void contractStateNotChangeIfExceptionOccurred() {
+        final var externalContract = smartContractsRepository.get(SmartContractV0TestImpl);
+        final var externalContractAddress = externalContract.getContractAddressBase58();
+        final var deployExternalContractState = deploySmartContract(externalContract).newContractState;
+
+        setNodeResponseGetSmartContractByteCode(externalContract, deployExternalContractState, true);
+
+        final var result = executeSmartContract(smartContract,
+                                                deployContractState,
+                                                "externalCall",
+                                                externalContractAddress,
+                                                "unknownMethod");
+
+        final var executionResult = result.executeResults.get(0);
+        final var changedExternalContractState = result.externalSmartContracts.get(externalContractAddress).getContractData().getContractState();
+        final var errorDescription = getFirstReturnValue(result).getV_string();
+
+        assertThat(executionResult.status.code, is(FAILURE.code));
+        assertThat(errorDescription, containsString("Cannot find a method by name and parameters specified."));
+        assertThat(changedExternalContractState, equalTo(deployExternalContractState));
+        assertThat(result.newContractState, equalTo(deployContractState));
+    }
+
+    @Test
+    @UseContract(SmartContractV2TestImpl)
+    @DisplayName("setter method into external contract can change external contract state")
+    public void setterMethodMustReturnNewStates() {
+        final var externalContractData = smartContractsRepository.get(SmartContractV0TestImpl);
+        final var externalContractAddress = externalContractData.getContractAddressBase58();
+        final var externalContractDeployState = deploySmartContract(SmartContractV0TestImpl).newContractState;
+
+        setNodeResponseGetSmartContractByteCode(externalContractData, externalContractDeployState, true);
+
+        final var result = executeSmartContract(
+                smartContract,
+                deployContractState,
+                "externalCall",
+                externalContractAddress,
+                "addTokens",
+                10);
+
+        final var methodResult = result.executeResults.get(0);
+
+        assertThat(methodResult.status.message, is("success"));
+        assertThat(result.newContractState, equalTo(deployContractState));
+        assertThat(result.externalSmartContracts.get(externalContractAddress), not(equalTo(externalContractDeployState)));
+    }
+
+    @Test
+    @UseContract(SmartContractV0TestImpl)
+    @DisplayName("getter method into external smart contract can't change state")
+    void getterMethodIntoExternalContractCanNotChangeState() {
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, false);
+
+        int total = (int) executeExternalSmartContract(smartContract,
+                                                       deployContractState,
+                                                       "externalCall",
+                                                       smartContract.getContractAddressBase58(),
+                                                       "getTotal");
+
+        assertThat(total, is(0));
+
+        final var contractState = executeSmartContract(smartContract, deployContractState, "addTokens", 10).newContractState;
+        total = (int) executeExternalSmartContract(smartContract,
+                                                   contractState,
+                                                   "externalCall",
+                                                   smartContract.getContractAddressBase58(),
+                                                   "getTotal");
+
+        assertThat(total, is(10));
+    }
+
+    @Test
+    @DisplayName("transactions emitted into external contract must returned into result")
+    @UseContract(SmartContractV2TestImpl)
+    void sendTransactionsIntoExternalSmartContract() {
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
+
+        final var result = executeSmartContract(
+                smartContract,
+                deployContractState,
+                "externalCall",
+                smartContract.getContractAddressBase58(),
+                "createTwoTransactions");
+
+        final var emittedTransactions = result.executeResults.get(0).emittedTransactions;
+
+        verify(spyNodeApiExecService, times(2)).sendTransaction(anyLong(), anyString(), anyString(), anyDouble(), any());
+        verify(spyNodeApiExecService, times(2)).takeAwayEmittedTransactions(anyLong());
+        assertThat(emittedTransactions.size(), is(2));
+    }
+
+    @Test
+    @DisplayName("payable not allowed to call into external contract")
+    @UseContract(SmartContractV0TestImpl)
+    public void invokePayableNotAllowedForCall() {
+
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, false);
+
+        final var calledSmartContractAddress = smartContract.getContractAddressBase58();
+        final var result = executeSmartContract(
+                smartContract,
+                deployContractState,
+                "externalCall",
+                calledSmartContractAddress,
+                "payable");
+        final var methodResult = result.executeResults.get(0);
+
+        assertThat(methodResult.status.code, is(FAILURE.code));
+        assertThat(methodResult.status.message, containsString("payable method cannot be called"));
+        assertThat(result.newContractState, equalTo(deployContractState));
+    }
+
+    @Test
+    @DisplayName("recursion contract call must be use one contract state")
+    @UseContract(SmartContractV0TestImpl)
+    public void recursionContractCall() {
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
+
+        final var returnValue = executeSmartContract(
+                smartContract,
+                deployContractState,
+                "recursionExternalContractSetterCall",
+                10);
+
+        final var methodResult = returnValue.executeResults.get(0);
+
+        assertThat(methodResult.status.message, is("success"));
+        assertThat(methodResult.result.getV_int_box(), is(45));
+        assertThat(returnValue.newContractState, not(equalTo(deployContractState)));
+        assertThat(returnValue.externalSmartContracts.size(), is(1));
+    }
+
 
     @Test
     @DisplayName("token name can't be called Credits, CS, etc")

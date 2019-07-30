@@ -3,7 +3,6 @@ package tests.credits;
 import dagger.Module;
 import dagger.Provides;
 
-import javax.inject.Singleton;
 import java.util.Map;
 
 import static com.credits.general.util.Utils.rethrowUnchecked;
@@ -19,7 +18,6 @@ public class SmartContractsProviderTestModule {
             stream(TestContract.values())
                     .collect(toMap((k) -> k, v -> builder().setSourceCode(rethrowUnchecked(() -> readSourceCode(v.path))).build()));
 
-    @Singleton
     @Provides
     Map<TestContract, SmartContactTestData> provideSmartContractTestDataMap() {
         return smartContractTestDataMap;

@@ -69,9 +69,12 @@ public class ContractExecutorUtils {
                 .orElseThrow(() -> new ContractExecutorException("executor class not compiled"));
     }
 
-    public static List<Class<?>> compileSmartContractByteCode(
-            List<ByteCodeObjectData> smartContractByteCodeData,
-            ByteCodeContractClassLoader byteCodeContractClassLoader) {
+    public static void loadClassesToClassloader(List<ByteCodeObjectData> objectDataList, ByteCodeContractClassLoader classLoader) {
+        objectDataList.forEach(o -> classLoader.loadClass(o.getName(), o.getByteCode()));
+    }
+
+    public static List<Class<?>> compileSmartContractByteCode(List<ByteCodeObjectData> smartContractByteCodeData,
+                                                              ByteCodeContractClassLoader byteCodeContractClassLoader) {
 
         List<Class<?>> compiledClasses = new ArrayList<>(smartContractByteCodeData.size());
         for (ByteCodeObjectData compilationUnit : smartContractByteCodeData) {

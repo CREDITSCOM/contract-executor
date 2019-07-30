@@ -4,11 +4,13 @@ import com.credits.client.executor.thrift.generated.apiexec.SmartContractGetResu
 import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ApiResponseData;
 import com.credits.general.thrift.generated.Variant;
+import com.credits.ioc.Injector;
 import com.credits.service.node.apiexec.NodeThriftApiExec;
 import com.credits.utils.ContractExecutorServiceUtils;
 import org.junit.jupiter.api.TestInfo;
 import pojo.ExternalSmartContract;
 import pojo.ReturnValue;
+import pojo.SmartContractContextData;
 import pojo.apiexec.SmartContractGetResultData;
 import pojo.session.DeployContractSession;
 import pojo.session.InvokeMethodSession;
@@ -20,18 +22,15 @@ import tests.credits.TestContract;
 import tests.credits.UseContract;
 
 import javax.inject.Inject;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
-import static com.credits.general.util.Utils.rethrowUnchecked;
-import static com.credits.service.BackwardCompatibilityService.allVersionsSmartContractClass;
+import static com.credits.utils.ContractExecutorServiceUtils.variantArrayOf;
 import static java.nio.ByteBuffer.wrap;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
-import static tests.credits.TestUtils.variantArrayOf;
 
 public abstract class ContractExecutorTestContext {
 
@@ -52,7 +51,9 @@ public abstract class ContractExecutorTestContext {
     private UseContract useContract;
 
     protected void setUp() throws Exception {
-        DaggerTestComponent.builder().build().inject(this);
+        final var testComponent = DaggerTestComponent.builder().build();
+        testComponent.inject(this);
+        Injector.INJECTOR.component = testComponent;
         when(ceService.getSmartContractClassLoader()).thenReturn(byteCodeContractClassLoader);
     }
 
@@ -66,24 +67,11 @@ public abstract class ContractExecutorTestContext {
             testInfo.getTestMethod().ifPresent(m -> {
                 useContract = m.getAnnotation(UseContract.class);
                 smartContract = smartContractsRepository.get(useContract.value());
-                if(useContract.deploy()){
+                if (useContract.deploy()) {
                     deployContractState = deploySmartContract(smartContract).newContractState;
                 }
             });
         }
-    }
-
-    private void selectSmartContractAndDeploy(TestContract testContract) {
-    }
-
-    private void initSmartContractStaticField(String fieldName, Object value) {
-        allVersionsSmartContractClass.forEach(contract -> {
-            rethrowUnchecked(() -> {
-                Field interactionService = contract.getDeclaredField(fieldName);
-                interactionService.setAccessible(true);
-                interactionService.set(null, value);
-            });
-        });
     }
 
     protected ReturnValue deploySmartContract(TestContract smartContract) {
@@ -99,21 +87,22 @@ public abstract class ContractExecutorTestContext {
                 Long.MAX_VALUE));
     }
 
-    protected ReturnValue executeExternalSmartContract(SmartContactTestData smartContract,
-                                                       byte[] contractState,
-                                                       String methodName,
-                                                       Object... params) {
+    protected Object executeExternalSmartContract(SmartContactTestData invokingSmartContract,
+                                                 byte[] contractState,
+                                                 String methodName,
+                                                 Object... params) {
         Map<String, ExternalSmartContract> usedContracts = new HashMap<>();
-        usedContracts.putIfAbsent(smartContract.getContractAddressBase58(),
+        usedContracts.putIfAbsent(invokingSmartContract.getContractAddressBase58(),
                                   new ExternalSmartContract(new SmartContractGetResultData(new ApiResponseData(SUCCESS, ""),
-                                                                                           smartContract.getByteCodeObjectDataList(),
+                                                                                           invokingSmartContract.getByteCodeObjectDataList(),
                                                                                            contractState,
                                                                                            true)));
 
-        return ceService.executeExternalSmartContract(
-                initInvokeMethodSession(smartContract, contractState, Long.MAX_VALUE, methodName, variantArrayOf(params)),
-                usedContracts,
-                byteCodeContractClassLoader);
+        return ceService.executeExternalSmartContact(
+                new SmartContractContextData(accessId, smartContract.getContractAddressBase58(), usedContracts, byteCodeContractClassLoader),
+                invokingSmartContract.getContractAddressBase58(),
+                methodName,
+                params);
     }
 
     protected ReturnValue executeSmartContract(SmartContactTestData smartContract, byte[] contractState, String methodName, Object... params) {

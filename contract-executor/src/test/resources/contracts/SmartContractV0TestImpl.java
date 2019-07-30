@@ -23,6 +23,11 @@ public class SmartContractV0TestImpl extends SmartContract {
         System.out.println(java.lang.Integer.toString(amount) + " tokens were added to total");
     }
 
+    public int add10Tokens(){
+        total += 10;
+        return total;
+    }
+
     public BigDecimal getBalanceTest() {
         return super.getBalance(initiator);
     }
