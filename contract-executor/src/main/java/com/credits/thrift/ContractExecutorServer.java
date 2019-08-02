@@ -37,7 +37,7 @@ public class ContractExecutorServer implements Runnable {
 
     private void serverStart(ContractExecutor.Processor processor) {
         try {
-            TServerTransport serverTransport = new TServerSocket(properties.executorPort);
+            TServerTransport serverTransport = new TServerSocket(properties.executorPort, 100);
             TServer server = new TThreadPoolServer(
                 new TThreadPoolServer.Args(serverTransport)
                     .processor(processor));
