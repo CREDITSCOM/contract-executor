@@ -11,6 +11,7 @@ public class ApplicationProperties {
     public int executorPort = 9080;
     public String nodeApiHost = "localhost";
     public int nodeApiPort = 9070;
+    public int readClientTimeout;
 
     public ApplicationProperties(){
         Properties properties = new Properties();
@@ -19,6 +20,7 @@ public class ApplicationProperties {
             nodeApiHost = properties.getProperty("contract.executor.node.api.host");
             nodeApiPort = Integer.parseInt(properties.getProperty("contract.executor.node.api.port"));
             executorPort = Integer.parseInt(properties.getProperty("contract.executor.port"));
+            readClientTimeout = Integer.parseInt(properties.getProperty("contract.executor.read.client.timeout"));
         } catch (IOException e) {
             throw new RuntimeException("can't load propertyFile", e);
         }
