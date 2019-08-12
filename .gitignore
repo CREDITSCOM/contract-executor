@@ -12,3 +12,4 @@ target
 ### Build output files
 dependency-reduced-pom.xml
 log/
+/contract-executor/buildNumber.properties
