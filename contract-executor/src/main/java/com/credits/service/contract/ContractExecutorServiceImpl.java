@@ -11,7 +11,6 @@ import com.credits.general.util.compiler.CompilationException;
 import com.credits.general.util.compiler.InMemoryCompiler;
 import com.credits.secure.PermissionsManager;
 import com.credits.service.node.apiexec.NodeApiExecInteractionServiceImpl;
-import com.credits.thrift.utils.ContractExecutorUtils;
 import exception.ContractExecutorException;
 import pojo.ExternalSmartContract;
 import pojo.ReturnValue;
@@ -97,14 +96,14 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         requireNonNull(byteCodeObjectDataList, "bytecode of executor class is null");
 
         final var contractClass = findRootClass(compileSmartContractByteCode(byteCodeObjectDataList, getSmartContractClassLoader()));
-        return createMethodDescriptionListByClass(contractClass);
+        return SmartContractAnalyzer.getContractMethods(contractClass);
     }
 
     @Override
     public List<MethodDescriptionData> getContractMethods(Class<?> contractClass) throws ContractExecutorException {
         requireNonNull(contractClass, "executor class is null");
 
-        return createMethodDescriptionListByClass(contractClass);
+        return SmartContractAnalyzer.getContractMethods(contractClass);
     }
 
     @Override
@@ -116,7 +115,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
         var contractClassLoader = new ByteCodeContractClassLoader();
         compileSmartContractByteCode(byteCodeObjectDataList, contractClassLoader);
-        return ContractExecutorUtils.getContractVariables(deserialize(contractState, contractClassLoader));
+        return SmartContractAnalyzer.getContractVariables(deserialize(contractState, contractClassLoader));
     }
 
     @Override

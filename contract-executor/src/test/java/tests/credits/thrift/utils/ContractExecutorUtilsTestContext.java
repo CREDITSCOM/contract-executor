@@ -4,7 +4,6 @@ import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.thrift.generated.Variant;
 import com.credits.general.util.compiler.InMemoryCompiler;
 import com.credits.general.util.compiler.model.CompilationUnit;
-import com.credits.thrift.utils.ContractExecutorUtils;
 import exception.ContractExecutorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.credits.service.contract.SmartContractAnalyzer.getContractVariables;
 import static org.junit.Assert.*;
 
 
@@ -42,7 +42,7 @@ public class ContractExecutorUtilsTestContext extends ContractExecutorTestContex
 
     @Test
     public void getContractVariablesTest() throws ContractExecutorException {
-        Map<String, Variant> map = ContractExecutorUtils.getContractVariables(instanceWithVariables);
+        Map<String, Variant> map = getContractVariables(instanceWithVariables);
         assertNotNull(map);
         assertEquals("java.lang.String", map.get("nullField").getV_null());
         assertEquals(5, map.get("intField").getFieldValue());
@@ -56,7 +56,7 @@ public class ContractExecutorUtilsTestContext extends ContractExecutorTestContex
                 ((Map) map.get("mapStringIntegerField").getFieldValue()).get(new Variant(Variant._Fields.V_STRING, "string key")));
 
         //Checks returning null if no public variables exist in the executor
-        assertNull(ContractExecutorUtils.getContractVariables(instanceWithoutVariables));
+        assertNull(getContractVariables(instanceWithoutVariables));
     }
 
     private Object getInstance(String source) throws Exception {

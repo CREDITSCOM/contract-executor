@@ -21,7 +21,9 @@ import java.util.stream.Collectors;
 
 import static com.credits.general.util.GeneralConverter.*;
 import static com.credits.scapi.misc.TokenStandardId.NOT_A_TOKEN;
-import static com.credits.thrift.utils.ContractExecutorUtils.*;
+import static com.credits.service.contract.SmartContractAnalyzer.defineTokenStandard;
+import static com.credits.thrift.utils.ContractExecutorUtils.findRootClass;
+import static com.credits.thrift.utils.ContractExecutorUtils.validateVersion;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
 import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
 import static java.util.Collections.emptyList;
