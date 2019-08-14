@@ -55,9 +55,10 @@ class LimitTimeThreadMethodExecutor extends LimitedExecutionMethod<Variant> {
         final var methodData = findInvokedMethodIntoContract(params);
         final var method = methodData.method;
         final var returnTypeName = method.getReturnType().getTypeName();
+        final var balancesCollector = new DiffBalancesCollector(session.contractAddress, (BasicTokenStandard) instance);
         return runForLimitTime(() -> {
             if (contractIsHaveObservableBalances()) {
-                final var balancesCollector = new DiffBalancesCollector(session.contractAddress, (BasicTokenStandard) instance);
+                ContractThreadLocalContext.addDiffBalanceCollector(balancesCollector);
                 try {
                     return toVariant(returnTypeName, method.invoke(instance, methodData.argValues));
                 } finally {

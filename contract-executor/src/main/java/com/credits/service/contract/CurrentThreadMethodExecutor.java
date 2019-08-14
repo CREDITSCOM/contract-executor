@@ -53,12 +53,17 @@ public class CurrentThreadMethodExecutor {
 
     public Object execute() {
         final var invokingContractData = getInvokingContractData(accessId, invokingContractAddress, usedContracts);
+        subscribeChangesIfObserveBalances(invokingContractData);
         final var instance = getInstance(invokingContractData);
         final var returnValue = findMethodThenInvoke(instance);
         final var newContractState = serialize(instance);
         verifyChangesContractState(currentContractAddress, invokingContractData, newContractState);
         invokingContractData.getContractData().setContractState(newContractState);
         return returnValue;
+    }
+
+    private void subscribeChangesIfObserveBalances(ExternalSmartContract invokingContractData) {
+
     }
 
     private Object findMethodThenInvoke(Object instance) {
