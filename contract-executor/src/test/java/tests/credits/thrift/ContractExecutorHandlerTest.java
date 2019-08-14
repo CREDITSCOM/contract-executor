@@ -219,7 +219,7 @@ public class ContractExecutorHandlerTest {
         when(mockCEService.buildContractClass(extensionStandardContract.getByteCodeObjectDataList())).thenReturn(List.of(extensionStandardContract.getContractClass()));
         result = contractExecutorHandler.getContractMethods(extensionStandardContract.getByteCodeObjectList(), APP_VERSION);
         assertThat(result.getMethods().size(), is(1));
-        assertThat(result.getTokenStandard(), is(EXTENSION_TOKEN_STANDARD.getId()));
+        assertThat(result.getTokenStandard(), is(EXTENSION_TOKEN_STANDARD_V1.getId()));
 
         when(mockCEService.buildContractClass(anyList())).thenReturn(List.of(SmartContract.class));
         result = contractExecutorHandler.getContractMethods(smartContract.getByteCodeObjectList(), APP_VERSION);
