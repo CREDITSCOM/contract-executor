@@ -2,10 +2,8 @@ package com.credits.thrift;
 
 import com.credits.ApplicationProperties;
 import com.credits.client.executor.thrift.generated.ContractExecutor;
-import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,24 +24,22 @@ public class ContractExecutorServer implements Runnable {
         properties = applicationProperties;
     }
 
-    public void start(){
+    public void start() {
         new Thread(this).start();
     }
 
     @Override
     public void run() {
+        logger.info("Contract Executor v{} commit {} is running...", properties.appVersion, properties.commitId);
         serverStart(processor);
     }
 
     private void serverStart(ContractExecutor.Processor processor) {
         try {
-            TServerTransport serverTransport = properties.readClientTimeout > 0
-                                      ? new TServerSocket(properties.executorPort,  properties.readClientTimeout)
-                                      : new TServerSocket(properties.executorPort);
-
-            TServer server = new TThreadPoolServer(
-                new TThreadPoolServer.Args(serverTransport)
-                    .processor(processor));
+            final var transport = properties.readClientTimeout > 0
+                                        ? new TServerSocket(properties.executorPort, properties.readClientTimeout)
+                                        : new TServerSocket(properties.executorPort);
+            final var server = new TThreadPoolServer(new TThreadPoolServer.Args(transport).processor(processor));
             logger.info("Starting the Thrift server on port {}...", properties.executorPort);
             server.serve();
         } catch (TTransportException e) {

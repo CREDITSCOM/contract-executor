@@ -7,7 +7,7 @@ import exception.ContractExecutorException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.credits.ApplicationProperties.APP_VERSION;
+import static com.credits.ApplicationProperties.API_VERSION;
 
 public class ContractExecutorUtils {
 
@@ -33,8 +33,8 @@ public class ContractExecutorUtils {
     }
 
     public static void validateVersion(short version) {
-        if (version != APP_VERSION) {
-            throw new IllegalArgumentException(String.format("Invalid version %s, %s expected", version, APP_VERSION));
+        if (version != API_VERSION) {
+            throw new IllegalArgumentException(String.format("Invalid version %s, %s expected", version, API_VERSION));
         }
     }
 }
