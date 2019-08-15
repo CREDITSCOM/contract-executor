@@ -26,8 +26,8 @@
     </properties>
 
     <scm>
-        <connection>scm:git:https://none.git</connection>
-        <developerConnection>scm:git:https://none.git</developerConnection>
+        <connection>scm:git:file:${project.basedir}</connection>
+        <developerConnection>scm:git:file:${project.basedir}</developerConnection>
         <tag>HEAD</tag>
         <url>scm:git:https://none.git</url>
     </scm>
@@ -119,6 +119,15 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.11.2</version>
+                <configuration>
+                    <connectionType>developerConnection</connectionType>
+                </configuration>
             </plugin>
 
             <plugin>
