@@ -17,7 +17,6 @@ import tests.credits.UseContract;
 import tests.credits.service.ContractExecutorTestContext;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Map;
 
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
@@ -27,6 +26,8 @@ import static com.credits.general.thrift.generated.Variant._Fields.V_VOID;
 import static com.credits.general.util.variant.VariantConverter.VOID_TYPE_VALUE;
 import static com.credits.general.util.variant.VariantConverter.toObject;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
+import static java.math.BigDecimal.ONE;
+import static java.math.RoundingMode.DOWN;
 import static java.nio.ByteBuffer.wrap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -110,7 +111,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     @UseContract(SmartContractV0TestImpl)
     @DisplayName("returned value should be BigDecimal type")
     void getBalanceReturnBigDecimal() {
-        final var expectedBigDecimalValue = new BigDecimal("19.5").setScale(18, RoundingMode.DOWN);
+        final var expectedBigDecimalValue = new BigDecimal("19.5").setScale(18, DOWN);
 
         when(nodeThriftApiExec.getBalance(any())).thenReturn(new WalletBalanceGetResult(SUCCESS_API_RESPONSE,
                                                                                         GeneralConverter.bigDecimalToAmount(expectedBigDecimalValue)));
@@ -240,7 +241,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     @UseContract(SmartContractV2TestImpl)
     @DisplayName("v2.SmartContract must be compiled and executable")
     void executePayableSmartContractV2() {
-        final var result = executeSmartContract(smartContract, deployContractState, "payable", BigDecimal.ONE, new byte[0]).executeResults.get(0);
+        final var result = executeSmartContract(smartContract, deployContractState, "payable", ONE, new byte[0]).executeResults.get(0);
 
         assertThat(result.status.code, is(SUCCESS.code));
         assertThat(result.result.getV_string(), is("payable call successfully"));
@@ -464,6 +465,54 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         assertThat(methodResult.result.getV_int_box(), is(45));
         assertThat(returnValue.newContractState, not(equalTo(deployContractState)));
         assertThat(returnValue.externalSmartContracts.size(), is(1));
+    }
+
+    @Test
+    @DisplayName("Result of execution BasicTokenStandardV2 must be contains changed balances")
+    @UseContract(BasicTokenStandardV2Impl)
+    void changedBalanceMustBeReturned() {
+        final var sourceAddress = initiatorAddressBase58;
+        final var targetAddress = smartContract.getContractAddressBase58();
+
+        final var returnValue = executeSmartContract(
+                smartContract,
+                deployContractState,
+                "transfer",
+                targetAddress,
+                ONE);
+
+        final var methodResult = returnValue.executeResults.get(0);
+        final var changedBalances = methodResult.changedBalances.get(smartContract.getContractAddressBase58());
+
+        assertThat(methodResult.status, is(SUCCESS_API_RESPONSE));
+        assertThat(changedBalances.size(), is(2));
+        assertThat(changedBalances.get(sourceAddress), is(new BigDecimal(999_999).setScale(3, DOWN)));
+        assertThat(changedBalances.get(targetAddress), is(new BigDecimal(1.000).setScale(3, DOWN)));
+    }
+
+    @Test
+    @DisplayName("Changed balances must be contain balances external contracts")
+    @UseContract(SmartContractV2TestImpl)
+    void checkCollectExternalContractsBalances() {
+        final var invokingContract = smartContractsRepository.get(BasicTokenStandardV2Impl);
+        final var invokingContractAddress = invokingContract.getContractAddressBase58();
+        final var invokingContractState = deploySmartContract(invokingContract).newContractState;
+
+        setNodeResponseGetSmartContractByteCode(invokingContract, invokingContractState, true);
+
+        final var returnValue = executeSmartContract(
+                smartContract,
+                deployContractState,
+                "externalCall",
+                invokingContractAddress,
+                "surprise");
+
+        final var methodResult = returnValue.executeResults.get(0);
+        final var changedInvokingContractBalances = methodResult.changedBalances.get(invokingContractAddress);
+
+        assertThat(methodResult.status, is(SUCCESS_API_RESPONSE));
+        assertThat(changedInvokingContractBalances.size(), is(2));
+        assertThat(changedInvokingContractBalances.get(initiatorAddressBase58), is(new BigDecimal(999_999).setScale(3, DOWN)));
     }
 
 

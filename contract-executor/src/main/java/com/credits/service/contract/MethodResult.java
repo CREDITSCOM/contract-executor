@@ -2,6 +2,8 @@ package com.credits.service.contract;
 
 import com.credits.general.thrift.generated.Variant;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.credits.general.thrift.generated.Variant._Fields.V_STRING;
@@ -13,6 +15,7 @@ public class MethodResult {
     private final Throwable exception;
     private final long threadId;
     private Object invokedObject;
+    private Map<String, Map<String, Number>> changedBalances = new HashMap<>();
 
     public MethodResult(Variant returnValue, long spentCpuTime, long threadId) {
         this.spentCpuTime = spentCpuTime;
@@ -53,21 +56,30 @@ public class MethodResult {
         return threadId;
     }
 
+    public Map<String, Map<String, Number>> getChangedBalances() {
+        return changedBalances;
+    }
+
+    public void setChangedBalances(Map<String, Map<String, Number>> changedBalances) {
+        this.changedBalances = changedBalances;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MethodResult that = (MethodResult) o;
-        return spentCpuTime == that.spentCpuTime &&
-                threadId == that.threadId &&
-                Objects.equals(returnValue, that.returnValue) &&
-                Objects.equals(exception, that.exception) &&
-                Objects.equals(invokedObject, that.invokedObject);
+        MethodResult result = (MethodResult) o;
+        return spentCpuTime == result.spentCpuTime &&
+                threadId == result.threadId &&
+                Objects.equals(returnValue, result.returnValue) &&
+                Objects.equals(exception, result.exception) &&
+                Objects.equals(invokedObject, result.invokedObject) &&
+                Objects.equals(changedBalances, result.changedBalances);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(spentCpuTime, returnValue, exception, threadId, invokedObject);
+        return Objects.hash(spentCpuTime, returnValue, exception, threadId, invokedObject, changedBalances);
     }
 
     @Override
@@ -78,6 +90,7 @@ public class MethodResult {
                 ", exception=" + exception +
                 ", threadId=" + threadId +
                 ", invokedObject=" + invokedObject +
+                ", changedBalances=" + changedBalances +
                 '}';
     }
 }

@@ -4,10 +4,7 @@ import com.credits.scapi.v2.MapChangeListener;
 import com.credits.scapi.v2.ObservableMap;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -42,7 +39,7 @@ public class TokenBalances<K, V> extends HashMap<K, V> implements ObservableMap<
 
     @Override
     public void addListener(MapChangeListener listener) {
-        listeners.add(listener);
+        Optional.ofNullable(listeners).orElseGet(() -> listeners = new HashSet<>()).add(listener);
     }
 
     @Override
@@ -57,7 +54,9 @@ public class TokenBalances<K, V> extends HashMap<K, V> implements ObservableMap<
 
     private V putThenNotify(K key, V value) {
         final V oldValue = super.put(key, value);
-        listeners.forEach(notifyListener(key, oldValue, value));
+        if (listeners != null) {
+            listeners.forEach(notifyListener(key, oldValue, value));
+        }
         return oldValue;
     }
 

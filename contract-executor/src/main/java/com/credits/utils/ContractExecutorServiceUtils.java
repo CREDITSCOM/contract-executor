@@ -72,7 +72,8 @@ public class ContractExecutorServiceUtils {
         return new SmartContractMethodResult(SUCCESS_API_RESPONSE,
                                              mr.getReturnValue(),
                                              mr.getSpentCpuTime(),
-                                             nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId()));
+                                             nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId()),
+                                             mr.getChangedBalances());
     }
 
     public static SmartContractMethodResult createFailureMethodResult(MethodResult mr, NodeApiExecStoreTransactionService nodeApiExecService) {

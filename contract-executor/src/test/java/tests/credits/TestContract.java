@@ -12,7 +12,8 @@ public enum TestContract {
     TroubleConstructor("TroubleConstructor.java"),
     VariablesTestContract("VariablesTestContract.java"),
     MethodParameterTestContract("MethodParametersTestContract.java"),
-    GetContractMethodsTestContract("GetContractMethodsTestContract.java");
+    GetContractMethodsTestContract("GetContractMethodsTestContract.java"),
+    BasicTokenStandardV2Impl("BasicTokenStandardV2Impl.java");
 
     public final String path;
 

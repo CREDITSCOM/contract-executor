@@ -81,8 +81,9 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         final var executor = new LimitTimeThreadMethodExecutor(session, contractInstance);
         final var methodResults = executor.executeIntoLimitTimeThread();
         session.usedContracts.values().forEach(contract -> contract.getContractData().setContractState(serialize(contract.getInstance())));
+        byte[] newContractState = session.usedContracts.get(session.contractAddress).getContractData().getContractState();
 
-        return new ReturnValue(session.usedContracts.get(session.contractAddress).getContractData().getContractState(),
+        return new ReturnValue(newContractState,
                                methodResults.stream()
                                        .map(mr -> mr.getException() == null
                                                   ? createSuccessMethodResult(mr, nodeApiExecService)

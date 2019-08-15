@@ -1,6 +1,8 @@
 package com.credits.scapi.v2;
 
-public interface WalletAddress {
+import java.io.Serializable;
+
+public interface WalletAddress extends Serializable {
 
     String getBase58Address();
 

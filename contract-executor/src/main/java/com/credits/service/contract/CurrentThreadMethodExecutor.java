@@ -1,6 +1,7 @@
 package com.credits.service.contract;
 
 import com.credits.general.classload.ByteCodeContractClassLoader;
+import com.credits.scapi.v2.BasicTokenStandard;
 import com.credits.service.node.apiexec.NodeApiExecInteractionServiceImpl;
 import exception.ContractExecutorException;
 import exception.ExternalSmartContractException;
@@ -16,6 +17,7 @@ import java.util.Optional;
 import static com.credits.general.serialize.Serializer.deserialize;
 import static com.credits.general.serialize.Serializer.serialize;
 import static com.credits.ioc.Injector.INJECTOR;
+import static com.credits.thrift.utils.ContractExecutorUtils.contractIsHaveObservableBalances;
 import static com.credits.thrift.utils.ContractExecutorUtils.loadClassesToClassloader;
 import static com.credits.utils.ContractExecutorServiceUtils.initNonStaticContractFields;
 import static java.util.Arrays.stream;
@@ -53,8 +55,8 @@ public class CurrentThreadMethodExecutor {
 
     public Object execute() {
         final var invokingContractData = getInvokingContractData(accessId, invokingContractAddress, usedContracts);
-        subscribeChangesIfObserveBalances(invokingContractData);
         final var instance = getInstance(invokingContractData);
+        subscribeChangesIfObserveBalances(instance);
         final var returnValue = findMethodThenInvoke(instance);
         final var newContractState = serialize(instance);
         verifyChangesContractState(currentContractAddress, invokingContractData, newContractState);
@@ -62,8 +64,12 @@ public class CurrentThreadMethodExecutor {
         return returnValue;
     }
 
-    private void subscribeChangesIfObserveBalances(ExternalSmartContract invokingContractData) {
-
+    private void subscribeChangesIfObserveBalances(Object instance) {
+        if (contractIsHaveObservableBalances(instance.getClass())) {
+            final var balancesCollector = new DiffBalancesCollector(invokingContractAddress, (BasicTokenStandard) instance);
+            ContractThreadLocalContext.addDiffBalanceCollector(balancesCollector);
+            balancesCollector.subscribe();
+        }
     }
 
     private Object findMethodThenInvoke(Object instance) {
