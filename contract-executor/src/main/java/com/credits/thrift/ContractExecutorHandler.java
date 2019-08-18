@@ -205,4 +205,9 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         logger.debug("compileBytecode --> {} amountByteCodeObjects={}", result.status, result.byteCodeObjects.size());
         return result;
     }
+
+    @Override
+    public List<ChangedTokenBalance> getTokenBalances(List<ByteCodeObject> byteCodeObjects, ByteBuffer contractState, short version) {
+        return null;
+    }
 }

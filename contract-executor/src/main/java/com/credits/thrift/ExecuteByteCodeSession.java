@@ -1,9 +1,6 @@
 package com.credits.thrift;
 
-import com.credits.client.executor.thrift.generated.ExecuteByteCodeResult;
-import com.credits.client.executor.thrift.generated.MethodHeader;
-import com.credits.client.executor.thrift.generated.SetterMethodResult;
-import com.credits.client.executor.thrift.generated.SmartContractBinary;
+import com.credits.client.executor.thrift.generated.*;
 import com.credits.general.thrift.generated.Variant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +14,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.credits.general.thrift.generated.Variant._Fields.V_STRING;
 import static com.credits.general.util.GeneralConverter.*;
+import static com.credits.general.util.Utils.getClassType;
+import static com.credits.general.util.variant.VariantConverter.toVariant;
 import static com.credits.utils.ApiExecClientPojoConverter.convertEmittedTransactionDataToEmittedTransaction;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
 import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
@@ -87,13 +87,38 @@ public class ExecuteByteCodeSession {
         final var firstResult = result.executeResults.get(0);
         final var binaryContractAddress = ByteBuffer.wrap(decodeFromBASE58(contractAddressBase58));
         final var emittedTransactions = convertEmittedTransactionDataToEmittedTransaction(firstResult.emittedTransactions);
+        final var changedTokenBalances = convertToChangedTokenBalances(firstResult.changedBalances);
         return List.of(new SetterMethodResult(firstResult.status,
                                               firstResult.result,
                                               Map.of(binaryContractAddress, ByteBuffer.wrap(result.newContractState)),
                                               emittedTransactions,
-                                              firstResult.spentCpuTime));
+                                              firstResult.spentCpuTime,
+                                              changedTokenBalances));
     }
 
+    private Map<ByteBuffer, List<ChangedTokenBalance>> convertToChangedTokenBalances(Map<String, Map<String, Number>> changedBalances) {
+        final var result = new HashMap<ByteBuffer, List<ChangedTokenBalance>>();
+        for (var token : changedBalances.entrySet()) {
+            final var contractAddress = ByteBuffer.wrap(decodeFromBASE58(token.getKey()));
+            final var balances = token.getValue();
+
+            final var changedTokenBalances = balances.entrySet().stream().map(addressAndBalance -> {
+                final var address = ByteBuffer.wrap(decodeFromBASE58(addressAndBalance.getKey()));
+                Variant newValue;
+                try {
+                    final var numberValue = addressAndBalance.getValue().doubleValue();
+                    newValue = toVariant(getClassType(numberValue), numberValue);
+                } catch (Throwable e) {
+                    logger.error("incorrect Number implementation of balance value. " + e.getMessage());
+                    newValue = toVariant(getClassType(null), null);
+                }
+                return new ChangedTokenBalance(address, newValue);
+            }).collect(Collectors.toList());
+
+            result.put(contractAddress, changedTokenBalances);
+        }
+        return result;
+    }
 
     private List<SetterMethodResult> executeMethodsSequential() {
         return methodHeaders.stream()
@@ -105,17 +130,20 @@ public class ExecuteByteCodeSession {
                                 final var executionResult = ceService.executeSmartContract(createInvokeMethodSession(methodHeader));
                                 final var firstResult = executionResult.executeResults.get(0);
                                 final var emittedTransactions = convertEmittedTransactionDataToEmittedTransaction(firstResult.emittedTransactions);
+                                final var changedTokenBalances = convertToChangedTokenBalances(firstResult.changedBalances);
                                 results.add(new SetterMethodResult(firstResult.status,
                                                                    firstResult.result,
                                                                    wrapMapArgsToByteBuffer(executionResult.externalSmartContracts),
                                                                    emittedTransactions,
-                                                                   firstResult.spentCpuTime));
+                                                                   firstResult.spentCpuTime,
+                                                                   changedTokenBalances));
                             } catch (Throwable e) {
                                 results.add(new SetterMethodResult(failureApiResponse(e),
                                                                    new Variant(V_STRING, e.getMessage()),
                                                                    emptyMap(),
                                                                    emptyList(),
-                                                                   0));
+                                                                   0,
+                                                                   emptyMap()));
                             }
                             return results;
                         },
