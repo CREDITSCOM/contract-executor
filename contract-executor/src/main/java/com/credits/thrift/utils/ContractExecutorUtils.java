@@ -7,10 +7,10 @@ import exception.ContractExecutorException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.credits.ApplicationProperties.APP_VERSION;
 import static com.credits.scapi.misc.TokenStandardId.BASIC_TOKEN_STANDARD_V2;
 import static com.credits.scapi.misc.TokenStandardId.EXTENSION_TOKEN_STANDARD_V2;
 import static com.credits.service.contract.SmartContractAnalyzer.defineTokenStandard;
+import static com.credits.ApplicationProperties.API_VERSION;
 
 public class ContractExecutorUtils {
 
@@ -42,8 +42,8 @@ public class ContractExecutorUtils {
     }
 
     public static void validateVersion(short version) {
-        if (version != APP_VERSION) {
-            throw new IllegalArgumentException(String.format("Invalid version %s, %s expected", version, APP_VERSION));
+        if (version != API_VERSION) {
+            throw new IllegalArgumentException(String.format("Invalid version %s, %s expected", version, API_VERSION));
         }
     }
 }

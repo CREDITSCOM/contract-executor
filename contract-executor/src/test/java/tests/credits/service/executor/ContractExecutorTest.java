@@ -216,7 +216,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         assertThat(spentCpuTime, lessThan(1000_000L));
 
         spentCpuTime = executeSmartContract(smartContract, deployContractState, 11, "bitWorkingThenSleep").executeResults.get(0).spentCpuTime;
-        assertThat(spentCpuTime, greaterThan(10_000_000L));
+        assertThat(spentCpuTime, greaterThan(7_000_000L));
     }
 
     @Test
