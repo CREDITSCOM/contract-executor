@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import pojo.EmitTransactionData;
 import pojo.ReturnValue;
+import tests.credits.SmartContactTestData;
 import tests.credits.UseContract;
 import tests.credits.service.ContractExecutorTestContext;
 
@@ -37,6 +38,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 import static tests.credits.TestContract.*;
+import static tests.credits.TestUtils.readSourceCode;
 
 public class ContractExecutorTest extends ContractExecutorTestContext {
 
@@ -491,7 +493,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     }
 
     @Test
-    @DisplayName("Changed balances must be contain balances external contracts")
+    @DisplayName("Changed balances of external and must be returned into result")
     @UseContract(SmartContractV2TestImpl)
     void checkCollectExternalContractsBalances() {
         final var invokingContract = smartContractsRepository.get(BasicTokenStandardV2Impl);
@@ -515,6 +517,54 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         assertThat(changedInvokingContractBalances.get(initiatorAddressBase58), is(new BigDecimal(999_999).setScale(3, DOWN)));
     }
 
+    @Test
+    @DisplayName("Changed balances of external and current contract must be returned into result")
+    @UseContract(BasicTokenStandardV2Impl)
+    void returnChangedBalancesFromExternalAndCurrentContract(){
+        final var invokingContract = SmartContactTestData.builder().setSourceCode(readSourceCode(BasicTokenStandardV2Impl.path)).build();
+        final var invokingContractAddress = invokingContract.getContractAddressBase58();
+        final var invokingContractState = deploySmartContract(invokingContract).newContractState;
+
+        setNodeResponseGetSmartContractByteCode(invokingContract, invokingContractState, true);
+
+        final var returnValue = executeSmartContract(
+                smartContract,
+                deployContractState,
+                "burnOneThenExternalCall",
+                invokingContractAddress,
+                "surprise");
+
+        final var methodResult = returnValue.executeResults.get(0);
+        final var changedCurrentContractContractBalances = methodResult.changedBalances.get(smartContract.getContractAddressBase58());
+        final var changedInvokingContractBalances = methodResult.changedBalances.get(invokingContractAddress);
+
+        assertThat(methodResult.status, is(SUCCESS_API_RESPONSE));
+        assertThat(changedCurrentContractContractBalances.size(), is(1));
+        assertThat(changedCurrentContractContractBalances.get(initiatorAddressBase58), is(new BigDecimal(999_999).setScale(3, DOWN)));
+        assertThat(changedInvokingContractBalances.size(), is(2));
+        assertThat(changedInvokingContractBalances.get(initiatorAddressBase58), is(new BigDecimal(999_999).setScale(3, DOWN)));
+    }
+
+    @Test
+    @DisplayName("Changed balances of current contract using externalCall must be returned as this contract changes")
+    @UseContract(BasicTokenStandardV2Impl)
+    void changeBalancesOfCurrentContractUseExternalCall(){
+        setNodeResponseGetSmartContractByteCode(smartContract, deployContractState, true);
+
+        final var returnValue = executeSmartContract(
+                smartContract,
+                deployContractState,
+                "externalCall",
+                smartContract.getContractAddressBase58(),
+                "burnOneToken");
+
+        final var methodResult = returnValue.executeResults.get(0);
+        final var changedBalances = methodResult.changedBalances.get(smartContract.getContractAddressBase58());
+
+        assertThat(methodResult.status, is(SUCCESS_API_RESPONSE));
+        assertThat(changedBalances.size(), is(1));
+        assertThat(changedBalances.get(initiatorAddressBase58), is(new BigDecimal(999_999).setScale(3, DOWN)));
+    }
 
     @Test
     @DisplayName("token name can't be called Credits, CS, etc")

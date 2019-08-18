@@ -1,5 +1,7 @@
 package com.credits.cst;
 
+import com.credits.scapi.annotations.ContractAddress;
+import com.credits.scapi.annotations.ContractMethod;
 import com.credits.scapi.implemetation.TokenBalances;
 import com.credits.scapi.v2.BasicTokenStandard;
 import com.credits.scapi.v2.ObservableMap;
@@ -171,6 +173,20 @@ public class BasicTokenStandardV2Impl extends SmartContract implements BasicToke
             balances.computeIfAbsent(addressOf(initiator), (addr) -> BigDecimal.ONE);
         }
     }
+
+    public Object burnOneThenExternalCall(@ContractAddress(id = 0) String address, @ContractMethod(id = 0) String method) {
+        burnOneToken();
+        return externalCall(address, method);
+    }
+
+    public void burnOneToken(){
+        burn(BigDecimal.ONE);
+    }
+
+    public Object externalCall(@ContractAddress(id = 0) String address, @ContractMethod(id = 0) String method) {
+        return invokeExternalContract(address, method);
+    }
+
 
     private void contractIsNotFrozen() {
         if (frozen) throw new RuntimeException("unavailable action! The smart-contract is frozen");

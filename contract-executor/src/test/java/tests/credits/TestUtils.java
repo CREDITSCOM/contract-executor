@@ -3,7 +3,6 @@ package tests.credits;
 import com.credits.client.executor.thrift.generated.ExecuteByteCodeResult;
 import com.credits.client.executor.thrift.generated.MethodHeader;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,9 +16,11 @@ public class TestUtils {
     public static ByteBuffer initiatorAddress = wrap(decodeFromBASE58("5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpe"));
     public static ByteBuffer contractAddress = wrap(decodeFromBASE58("5B3YXqDTcWQFGAqEJQJP3Bg1ZK8FFtHtgCiFLT5VAxpd"));
 
-    public static String readSourceCode(String resourcePath) throws IOException {
-        String sourceCodePath = String.format("%s/src/test/resources/%s", Paths.get("").toAbsolutePath(), resourcePath);
-        return new String(Files.readAllBytes(Paths.get(sourceCodePath)));
+    public static String readSourceCode(String resourcePath) {
+        return rethrowUnchecked(() -> {
+            String sourceCodePath = String.format("%s/src/test/resources/%s", Paths.get("").toAbsolutePath(), resourcePath);
+            return new String(Files.readAllBytes(Paths.get(sourceCodePath)));
+        });
     }
 
     public static byte[] getInvokedContractState(ExecuteByteCodeResult deployResult) {
