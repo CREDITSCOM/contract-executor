@@ -9,7 +9,7 @@ import com.credits.scapi.annotations.ContractMethod;
 import com.credits.scapi.annotations.UsingContract;
 import com.credits.scapi.annotations.UsingContracts;
 import com.credits.scapi.misc.TokenStandardId;
-import com.credits.scapi.v2.WalletAddress;
+import com.credits.scapi.v2.BasicTokenStandard;
 import exception.ContractExecutorException;
 
 import java.lang.annotation.Annotation;
@@ -21,13 +21,14 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.credits.general.util.variant.VariantConverter.toVariant;
-import static com.credits.scapi.misc.TokenStandardId.NOT_A_TOKEN;
+import static com.credits.scapi.misc.TokenStandardId.*;
 import static com.credits.service.BackwardCompatibilityService.allVersionsBasicStandardClass;
 import static com.credits.utils.Constants.*;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 import static org.apache.commons.lang3.exception.ExceptionUtils.rethrow;
 
@@ -146,5 +147,16 @@ public interface SmartContractAnalyzer {
         return contractVariables;
     }
 
-    Map<String, Map<WalletAddress, Number>> getTokenBalances(Object contract);
+    static boolean contractIsHaveObservableBalances(Class<?> contractClass) {
+        final var standardId = defineTokenStandard(contractClass);
+        return standardId == BASIC_TOKEN_STANDARD_V2.getId() ||
+                standardId == EXTENSION_TOKEN_STANDARD_V2.getId();
+    }
+
+    static Map<String, Number> getTokenBalances(Object contract) {
+        if (contractIsHaveObservableBalances(contract.getClass())) {
+            return ((BasicTokenStandard) contract).getTokenBalances().entrySet().stream()
+                    .collect(toMap(entry -> entry.getKey().getBase58Address(), Map.Entry::getValue));
+        } else throw new IllegalArgumentException("contract must be inherited of BasicTokenStandard v2");
+    }
 }

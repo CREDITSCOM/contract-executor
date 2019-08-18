@@ -17,7 +17,7 @@ import java.util.Optional;
 import static com.credits.general.serialize.Serializer.deserialize;
 import static com.credits.general.serialize.Serializer.serialize;
 import static com.credits.ioc.Injector.INJECTOR;
-import static com.credits.thrift.utils.ContractExecutorUtils.contractIsHaveObservableBalances;
+import static com.credits.service.contract.SmartContractAnalyzer.contractIsHaveObservableBalances;
 import static com.credits.thrift.utils.ContractExecutorUtils.loadClassesToClassloader;
 import static com.credits.utils.ContractExecutorServiceUtils.initNonStaticContractFields;
 import static java.util.Arrays.stream;

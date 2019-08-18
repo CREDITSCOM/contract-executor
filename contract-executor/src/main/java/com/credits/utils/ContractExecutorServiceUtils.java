@@ -1,5 +1,6 @@
 package com.credits.utils;
 
+import com.credits.client.executor.thrift.generated.ChangedTokenBalance;
 import com.credits.general.thrift.generated.APIResponse;
 import com.credits.general.thrift.generated.Variant;
 import com.credits.general.util.variant.VariantConverter;
@@ -17,6 +18,8 @@ import service.node.NodeApiExecStoreTransactionService;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
 import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
+import static com.credits.general.util.GeneralConverter.decodeFromBASE58;
 import static com.credits.general.util.Utils.getClassType;
 import static com.credits.general.util.Utils.rethrowUnchecked;
 import static com.credits.general.util.variant.VariantConverter.toVariant;
@@ -174,4 +178,31 @@ public class ContractExecutorServiceUtils {
         return stream(params).map(p -> toVariant(getClassType(p), p)).collect(toList());
     }
 
+    public static Map<ByteBuffer, List<ChangedTokenBalance>> convertToChangedTokenBalancesMap(Map<String, Map<String, Number>> changedBalances) {
+        final var result = new HashMap<ByteBuffer, List<ChangedTokenBalance>>();
+        for (var token : changedBalances.entrySet()) {
+            final var contractAddress = ByteBuffer.wrap(decodeFromBASE58(token.getKey()));
+            final var balances = token.getValue();
+
+            final var changedTokenBalances = convertToChangedTokenBalancesList(balances);
+
+            result.put(contractAddress, changedTokenBalances);
+        }
+        return result;
+    }
+
+    public static List<ChangedTokenBalance> convertToChangedTokenBalancesList(Map<String, Number> balances) {
+        return balances.entrySet().stream().map(addressAndBalance -> {
+            final var address = ByteBuffer.wrap(decodeFromBASE58(addressAndBalance.getKey()));
+            Variant newValue;
+            try {
+                final var numberValue = addressAndBalance.getValue().doubleValue();
+                newValue = toVariant(getClassType(numberValue), numberValue);
+            } catch (Throwable e) {
+                logger.error("incorrect Number implementation of balance value. " + e.getMessage());
+                newValue = toVariant(getClassType(null), null);
+            }
+            return new ChangedTokenBalance(address, newValue);
+        }).collect(Collectors.toList());
+    }
 }

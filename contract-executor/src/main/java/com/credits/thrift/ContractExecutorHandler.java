@@ -20,12 +20,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.credits.general.util.GeneralConverter.*;
+import static com.credits.general.util.Utils.getClassType;
+import static com.credits.general.util.variant.VariantConverter.toVariant;
 import static com.credits.scapi.misc.TokenStandardId.NOT_A_TOKEN;
 import static com.credits.service.contract.SmartContractAnalyzer.defineTokenStandard;
 import static com.credits.thrift.utils.ContractExecutorUtils.findRootClass;
 import static com.credits.thrift.utils.ContractExecutorUtils.validateVersion;
-import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
-import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
+import static com.credits.utils.ContractExecutorServiceUtils.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
@@ -170,7 +171,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         GetContractVariablesResult result;
         try {
             if (logger.isDebugEnabled()) {
-                logger.debug("<-- getContractVariables: compilationUnits={} bytes|contractState={} bytes|version={}",
+                logger.debug("<-- getContractVariables: compilationUnits={}|contractState={} bytes|version={}",
                              compilationUnits.size(), contractState.array().length, version);
             }
             validateVersion(version);
@@ -207,7 +208,23 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
     }
 
     @Override
-    public List<ChangedTokenBalance> getTokenBalances(List<ByteCodeObject> byteCodeObjects, ByteBuffer contractState, short version) {
-        return null;
+    public GetTokenBalancesResult getTokenBalances(List<ByteCodeObject> byteCodeObjects, ByteBuffer contractState, short version) {
+        GetTokenBalancesResult result;
+        try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("<-- getTokenBalances: byteCodeObjects={}|contractState={} bytes|version={}",
+                             byteCodeObjects.size(), contractState.array().length, version);
+            }
+            validateVersion(version);
+            final var balances = ceService.getTokenBalances(byteCodeObjectsToByteCodeObjectsData(byteCodeObjects), contractState.array());
+            result = new GetTokenBalancesResult(SUCCESS_API_RESPONSE, convertToChangedTokenBalancesList(balances));
+        } catch (Throwable e) {
+            result = new GetTokenBalancesResult(failureApiResponse(e),
+                                                List.of(new ChangedTokenBalance(ByteBuffer.allocate(0), toVariant(getClassType(null), null))));
+        }
+        logger.debug("getTokenBalances --> {}|amountBalances={}",
+                     result.status,
+                     ofNullable(result.changedBalances).orElse(emptyList()).size());
+        return result;
     }
 }

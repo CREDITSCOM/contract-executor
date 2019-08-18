@@ -141,6 +141,17 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         return createCurrentThreadMethodExecutor(contractContext, invokingContractAddress, method, params).execute();
     }
 
+    @Override
+    public Map<String, Number> getTokenBalances(List<ByteCodeObjectData> contractByteCode, byte[] contractState) throws ContractExecutorException {
+        requireNonNull(contractByteCode, "bytecode of contract class is null");
+        requireNonNull(contractState, "contract state is null");
+        if (contractState.length == 0) throw new ContractExecutorException("contract state is empty");
+
+        var contractClassLoader = new ByteCodeContractClassLoader();
+        compileSmartContractByteCode(contractByteCode, contractClassLoader);
+        return SmartContractAnalyzer.getTokenBalances(deserialize(contractState, contractClassLoader));
+    }
+
     private void verifyPayableCall(String method) {
         if (method.equals("payable")) throw new ContractExecutorException("payable method cannot be called");
     }

@@ -31,6 +31,8 @@ public interface ContractExecutorService {
 
     Object executeExternalSmartContact(SmartContractContext contractContext, String invokingContractAddress, String method, Object[] params);
 
+    Map<String, Number> getTokenBalances(List<ByteCodeObjectData> contractByteCode, byte[] contractState) throws ContractExecutorException;
+
     default ByteCodeContractClassLoader getSmartContractClassLoader() {
         return getClass().getClassLoader() instanceof ByteCodeContractClassLoader
             ? (ByteCodeContractClassLoader) getClass().getClassLoader()

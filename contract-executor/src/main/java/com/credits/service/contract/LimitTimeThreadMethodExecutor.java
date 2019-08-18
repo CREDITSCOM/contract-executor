@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import static com.credits.general.serialize.Serializer.deserialize;
 import static com.credits.general.util.variant.VariantConverter.toVariant;
-import static com.credits.thrift.utils.ContractExecutorUtils.contractIsHaveObservableBalances;
+import static com.credits.service.contract.SmartContractAnalyzer.contractIsHaveObservableBalances;
 import static com.credits.utils.ContractExecutorServiceUtils.getMethodArgumentsValuesByNameAndParams;
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
