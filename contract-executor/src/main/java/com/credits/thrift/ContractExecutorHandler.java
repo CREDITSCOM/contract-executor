@@ -28,6 +28,7 @@ import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONS
 import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 public class ContractExecutorHandler implements ContractExecutor.Iface {
@@ -180,7 +181,9 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         } catch (Throwable e) {
             result = new GetContractVariablesResult(failureApiResponse(e), emptyMap());
         }
-        logger.debug("getContractVariables --> { {}|amountVariables={}}", result.status, result.contractVariables.size());
+        logger.debug("getContractVariables --> { {}|amountVariables={}}",
+                     result.status,
+                     ofNullable(result.contractVariables).orElse(emptyMap()).size());
         return result;
     }
 

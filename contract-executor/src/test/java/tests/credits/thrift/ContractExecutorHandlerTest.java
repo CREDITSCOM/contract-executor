@@ -28,7 +28,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 
-import static com.credits.ApplicationProperties.APP_VERSION;
+import static com.credits.ApplicationProperties.API_VERSION;
 import static com.credits.general.pojo.ApiResponseCode.FAILURE;
 import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
 import static com.credits.general.thrift.generated.Variant._Fields.*;
@@ -170,7 +170,7 @@ public class ContractExecutorHandlerTest {
     @DisplayName("Throw exception if version is not valid")
     @SuppressWarnings("unchecked")
     void checkAppVersionTest() {
-        short invalidVersion = (short) (APP_VERSION - 1);
+        short invalidVersion = (short) (API_VERSION - 1);
         var contractState = deploySmartContract();
 
         assertVersionIsInvalid(executeSmartContract(contractState, List.of(new MethodHeader("getTotal", emptyList())), invalidVersion).getStatus());
@@ -212,17 +212,17 @@ public class ContractExecutorHandlerTest {
         when(mockCEService.getContractMethods(anyList())).thenReturn(methodDescriptionData);
 
         when(mockCEService.buildContractClass(basicStandardContract.getByteCodeObjectDataList())).thenReturn(List.of(basicStandardContract.getContractClass()));
-        var result = contractExecutorHandler.getContractMethods(basicStandardContract.getByteCodeObjectList(), APP_VERSION);
+        var result = contractExecutorHandler.getContractMethods(basicStandardContract.getByteCodeObjectList(), API_VERSION);
         assertThat(result.getMethods().size(), is(1));
         assertThat(result.getTokenStandard(), is(BASIC_STANDARD.getId()));
 
         when(mockCEService.buildContractClass(extensionStandardContract.getByteCodeObjectDataList())).thenReturn(List.of(extensionStandardContract.getContractClass()));
-        result = contractExecutorHandler.getContractMethods(extensionStandardContract.getByteCodeObjectList(), APP_VERSION);
+        result = contractExecutorHandler.getContractMethods(extensionStandardContract.getByteCodeObjectList(), API_VERSION);
         assertThat(result.getMethods().size(), is(1));
         assertThat(result.getTokenStandard(), is(EXTENSION_TOKEN_STANDARD.getId()));
 
         when(mockCEService.buildContractClass(anyList())).thenReturn(List.of(SmartContract.class));
-        result = contractExecutorHandler.getContractMethods(smartContract.getByteCodeObjectList(), APP_VERSION);
+        result = contractExecutorHandler.getContractMethods(smartContract.getByteCodeObjectList(), API_VERSION);
         assertThat(result.getMethods().size(), is(1));
         assertThat(result.getTokenStandard(), is(NOT_A_TOKEN.getId()));
     }
@@ -286,7 +286,7 @@ public class ContractExecutorHandlerTest {
     }
 
     private ExecuteByteCodeResult executeSmartContract(ByteBuffer contractState, List<MethodHeader> methodHeaders) {
-        return executeSmartContract(contractState, methodHeaders, APP_VERSION);
+        return executeSmartContract(contractState, methodHeaders, API_VERSION);
     }
 
     private ExecuteByteCodeMultipleResult executeByteCodeMultiple(ByteBuffer contractState,

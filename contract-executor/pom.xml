@@ -6,7 +6,7 @@
 
     <artifactId>contract-executor</artifactId>
     <packaging>jar</packaging>
-    <version>0.8.3</version>
+    <version>0.8.4</version>
 
     <parent>
         <groupId>com.credits.executor</groupId>
@@ -23,11 +23,12 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <junit-platform.version>5.3.1</junit-platform.version>
+        <app.version>0.8.4</app.version>
     </properties>
 
     <scm>
-        <connection>scm:git:https://none.git</connection>
-        <developerConnection>scm:git:https://none.git</developerConnection>
+        <connection>scm:git:file:${project.basedir}</connection>
+        <developerConnection>scm:git:file:${project.basedir}</developerConnection>
         <tag>HEAD</tag>
         <url>scm:git:https://none.git</url>
     </scm>
@@ -103,6 +104,7 @@
                             <Main-Class>com.credits.ExecutorApp</Main-Class>
                             <Multi-Release>true</Multi-Release>
                             <Class-Path>sc-api-support.jar logback.xml</Class-Path>
+                            <Specification-Version>${app.version}</Specification-Version>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -119,6 +121,40 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.11.2</version>
+                <configuration>
+                    <connectionType>developerConnection</connectionType>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>get-git-info</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <generateGitPropertiesFile>false</generateGitPropertiesFile>
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>
+                        ${project.build.outputDirectory}/git.properties
+                    </generateGitPropertiesFilename>
+                    <includeOnlyProperties>
+                        <includeOnlyProperty>git.commit.id</includeOnlyProperty>
+                    </includeOnlyProperties>
+                </configuration>
             </plugin>
 
             <plugin>
