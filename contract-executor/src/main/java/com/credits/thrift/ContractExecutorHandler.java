@@ -25,7 +25,7 @@ import static com.credits.service.contract.SmartContractAnalyzer.defineTokenStan
 import static com.credits.thrift.utils.ContractExecutorUtils.findRootClass;
 import static com.credits.thrift.utils.ContractExecutorUtils.validateVersion;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
-import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
+import static com.credits.utils.ContractExecutorServiceUtils.defineFailureCode;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
@@ -68,7 +68,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
             final var session = new ExecuteByteCodeSession(ceService, accessId, initiatorAddress, invokedContract, methodHeaders, executionTime);
             executeByteCodeResult = session.perform();
         } catch (Throwable e) {
-            executeByteCodeResult = new ExecuteByteCodeResult(failureApiResponse(e), emptyList());
+            executeByteCodeResult = new ExecuteByteCodeResult(defineFailureCode(e), emptyList());
         }
 
         logger.debug("executeByteCode --> {}", executeByteCodeResult);
@@ -137,7 +137,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
             }).collect(Collectors.toList());
 
         } catch (Throwable e) {
-            byteCodeMultipleResult = new ExecuteByteCodeMultipleResult(failureApiResponse(e), emptyList());
+            byteCodeMultipleResult = new ExecuteByteCodeMultipleResult(defineFailureCode(e), emptyList());
         }
 
         logger.debug("executeByteCodeMultiple --> {} amountResults={}", byteCodeMultipleResult.status, byteCodeMultipleResult.results.size());
@@ -159,7 +159,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
 
             result = new GetContractMethodsResult(SUCCESS_API_RESPONSE, contractMethods, tokenStandard);
         } catch (Throwable e) {
-            result = new GetContractMethodsResult(failureApiResponse(e), emptyList(), NOT_A_TOKEN.getId());
+            result = new GetContractMethodsResult(defineFailureCode(e), emptyList(), NOT_A_TOKEN.getId());
         }
         logger.debug("getContractMethods --> {}|amountMethods={}|tokenId={}", result.status, result.methods.size(), result.tokenStandard);
         return result;
@@ -179,7 +179,7 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
                                                             byteCodeObjectToByteCodeObjectData(compilationUnits),
                                                             contractState.array()));
         } catch (Throwable e) {
-            result = new GetContractVariablesResult(failureApiResponse(e), emptyMap());
+            result = new GetContractVariablesResult(defineFailureCode(e), emptyMap());
         }
         logger.debug("getContractVariables --> { {}|amountVariables={}}",
                      result.status,
@@ -198,9 +198,9 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
                                                  byteCodeObjectsDataToByteCodeObjects(ceService.compileContractClass(sourceCode)));
         } catch (CompilationException e) {
             result = new CompileSourceCodeResult();
-            result.setStatus(failureApiResponse(e));
+            result.setStatus(defineFailureCode(e));
         } catch (Throwable e) {
-            result = new CompileSourceCodeResult(failureApiResponse(e), emptyList());
+            result = new CompileSourceCodeResult(defineFailureCode(e), emptyList());
         }
         logger.debug("compileBytecode --> {} amountByteCodeObjects={}", result.status, result.byteCodeObjects.size());
         return result;
