@@ -10,8 +10,8 @@
     <version>none</version>
 
     <modules>
-        <module>sc-api-support</module>
         <module>contract-executor</module>
+        <module>sc-api-support</module>
     </modules>
 
     <properties>
