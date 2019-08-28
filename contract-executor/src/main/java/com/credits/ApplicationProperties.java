@@ -13,6 +13,7 @@ public class ApplicationProperties {
     public String nodeApiHost = "localhost";
     public int nodeApiPort = 9070;
     public int readClientTimeout;
+    public String tag;
     public String commitId;
     public String appVersion;
 
@@ -42,7 +43,9 @@ public class ApplicationProperties {
         if (url != null) {
             try (final var is = url.openStream()) {
                 properties.load(is);
-                commitId = properties.getProperty("git.commit.id");
+                tag = (String) properties.get("git.closest.tag.name");
+                appVersion = (String) properties.get("git.closest.tag.commit.count");
+                commitId = (String) properties.get("git.commit.id");
             } catch (IOException e) {
                 throw new RuntimeException("can't load git.properties", e);
             }
