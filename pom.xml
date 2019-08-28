@@ -10,8 +10,8 @@
     <version>none</version>
 
     <modules>
-        <module>contract-executor</module>
         <module>sc-api-support</module>
+        <module>contract-executor</module>
     </modules>
 
     <properties>
@@ -20,25 +20,34 @@
         <skipTests>false</skipTests>
         <skipIntegrationTests>true</skipIntegrationTests>
         <javaVersion>11</javaVersion>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
                 <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifestEntries>
-                            <Main-Class>com.credits.ExecutorApp</Main-Class>
-                            <Multi-Release>true</Multi-Release>
-                        </manifestEntries>
-                    </archive>
+                    <source>${javaVersion}</source>
+                    <target>${javaVersion}</target>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                    <encoding>UTF-8</encoding>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>com.google.dagger</groupId>
+                            <artifactId>dagger-compiler</artifactId>
+                            <version>2.22.1</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 </project>

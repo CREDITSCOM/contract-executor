@@ -17,27 +17,38 @@
     </parent>
 
     <build>
+        <defaultGoal>install</defaultGoal>
         <plugins>
+
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>get-git-info</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
                 <configuration>
-                    <source>${javaVersion}</source>
-                    <target>${javaVersion}</target>
-                    <compilerArgs>
-                        <arg>-parameters</arg>
-                    </compilerArgs>
-                    <encoding>UTF-8</encoding>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>com.google.dagger</groupId>
-                            <artifactId>dagger-compiler</artifactId>
-                            <version>2.22.1</version>
-                        </path>
-                    </annotationProcessorPaths>
+                    <injectAllReactorProjects>true</injectAllReactorProjects>
+                    <generateGitPropertiesFile>false</generateGitPropertiesFile>
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>
+                        ${project.build.outputDirectory}/git.properties
+                    </generateGitPropertiesFilename>
+                    <includeOnlyProperties>
+                        <includeOnlyProperty>git.commit.id</includeOnlyProperty>
+                        <includeOnlyProperty>git.closest.tag.commit.count</includeOnlyProperty>
+                        <includeOnlyProperty>git.closest.tag.name</includeOnlyProperty>
+                    </includeOnlyProperties>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -48,7 +59,10 @@
                     <archive>
                         <manifestEntries>
                             <Multi-Release>true</Multi-Release>
-                            <Class-Path>contract-executor.jar</Class-Path>
+                            <!--suppress UnresolvedMavenProperty -->
+                            <ImplementationVersion>
+                                ${git.closest.tag.name} build ${git.closest.tag.commit.count} commit ${git.commit.id}
+                            </ImplementationVersion>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -59,9 +73,15 @@
                         <goals>
                             <goal>single</goal>
                         </goals>
+                        <configuration>
+                            <!--suppress UnresolvedMavenProperty -->
+                            <finalName>sc-api-support-${git.closest.tag.name}-b${git.closest.tag.commit.count}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 
