@@ -96,6 +96,14 @@
     <repositories>
         <repository>
             <id>thrift-api-client-mvn-repo</id>
+            <url>https://raw.github.com/creditscom/thrift-api-client/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>contract-executor-mvn-repo</id>
             <url>https://raw.github.com/creditscom/contract-executor/mvn-repo/</url>
             <snapshots>
                 <enabled>true</enabled>
