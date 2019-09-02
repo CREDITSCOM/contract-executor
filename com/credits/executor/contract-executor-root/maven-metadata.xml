@@ -3,10 +3,10 @@
   <groupId>com.credits.executor</groupId>
   <artifactId>contract-executor-root</artifactId>
   <versioning>
-    <release>0.8.3</release>
+    <release>none</release>
     <versions>
-      <version>0.8.3</version>
+      <version>none</version>
     </versions>
-    <lastUpdated>20190902142958</lastUpdated>
+    <lastUpdated>20190902145223</lastUpdated>
   </versioning>
 </metadata>
