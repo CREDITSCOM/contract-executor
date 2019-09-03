@@ -30,7 +30,7 @@ public class ContractExecutorServer implements Runnable {
 
     @Override
     public void run() {
-        logger.info("Contract Executor {} build {} commit {} is running...", properties.appVersion, properties.tag, properties.commitId);
+        logger.info("Contract Executor {} build {} commit {} is running...", properties.tag, properties.buildVersion, properties.commitId);
         serverStart(processor);
     }
 

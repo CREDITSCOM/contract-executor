@@ -1,5 +1,6 @@
 package com.credits.thrift.utils;
 
+import com.credits.exception.IncompatibleVersionException;
 import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ByteCodeObjectData;
 import exception.ContractExecutorException;
@@ -34,7 +35,7 @@ public class ContractExecutorUtils {
 
     public static void validateVersion(short version) {
         if (version != API_VERSION) {
-            throw new IllegalArgumentException(String.format("Invalid version %s, %s expected", version, API_VERSION));
+            throw new IncompatibleVersionException(String.format("Invalid version %s, %s expected", version, API_VERSION));
         }
     }
 }

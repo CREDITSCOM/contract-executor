@@ -34,9 +34,10 @@ import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
 import static com.credits.general.thrift.generated.Variant._Fields.*;
 import static com.credits.general.util.variant.VariantConverter.VOID_TYPE_VALUE;
 import static com.credits.scapi.misc.TokenStandardId.*;
+import static com.credits.thrift.ApiExecResponseCode.INCOMPATIBLE_VERSION;
 import static com.credits.utils.ApiExecClientPojoConverter.convertEmittedTransactionDataToEmittedTransaction;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
-import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
+import static com.credits.utils.ContractExecutorServiceUtils.defineFailureCode;
 import static java.nio.ByteBuffer.allocate;
 import static java.nio.ByteBuffer.wrap;
 import static java.util.Collections.emptyList;
@@ -190,7 +191,7 @@ public class ContractExecutorHandlerTest {
 
         when(mockCEService.executeSmartContract(any())).thenReturn(
                 new ReturnValue(new byte[1],
-                                List.of(new SmartContractMethodResult(failureApiResponse(new RuntimeException("oops some problem")),
+                                List.of(new SmartContractMethodResult(defineFailureCode(new RuntimeException("oops some problem")),
                                                                       new Variant(V_STRING, "oops some problem"), 0L, emptyList())),
                                 null));
 
@@ -281,8 +282,8 @@ public class ContractExecutorHandlerTest {
     }
 
     private void assertVersionIsInvalid(APIResponse status) {
-        assertThat(status.code, is(FAILURE.code));
-        assertThat(status.getMessage(), containsString("IllegalArgumentException: Invalid version"));
+        assertThat(status.code, is(INCOMPATIBLE_VERSION.getCode()));
+        assertThat(status.getMessage(), containsString("IncompatibleVersionException: Invalid version"));
     }
 
     private ExecuteByteCodeResult executeSmartContract(ByteBuffer contractState, List<MethodHeader> methodHeaders) {

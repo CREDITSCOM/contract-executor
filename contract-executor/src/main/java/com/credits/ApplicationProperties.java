@@ -15,13 +15,12 @@ public class ApplicationProperties {
     public int readClientTimeout;
     public String tag;
     public String commitId;
-    public String appVersion;
+    public String buildVersion;
 
     public ApplicationProperties() {
         Locale.setDefault(Locale.US);
         final var properties = new Properties();
 
-        appVersion = getClass().getPackage().getSpecificationVersion();
         readSettingProperties(properties);
         readGitProperties(properties);
     }
@@ -44,7 +43,7 @@ public class ApplicationProperties {
             try (final var is = url.openStream()) {
                 properties.load(is);
                 tag = (String) properties.get("git.closest.tag.name");
-                appVersion = (String) properties.get("git.closest.tag.commit.count");
+                buildVersion = (String) properties.get("git.closest.tag.commit.count");
                 commitId = (String) properties.get("git.commit.id");
             } catch (IOException e) {
                 throw new RuntimeException("can't load git.properties", e);

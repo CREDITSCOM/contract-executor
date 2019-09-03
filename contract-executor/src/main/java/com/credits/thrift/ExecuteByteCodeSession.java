@@ -22,7 +22,7 @@ import static com.credits.general.thrift.generated.Variant._Fields.V_STRING;
 import static com.credits.general.util.GeneralConverter.*;
 import static com.credits.utils.ApiExecClientPojoConverter.convertEmittedTransactionDataToEmittedTransaction;
 import static com.credits.utils.ContractExecutorServiceUtils.SUCCESS_API_RESPONSE;
-import static com.credits.utils.ContractExecutorServiceUtils.failureApiResponse;
+import static com.credits.utils.ContractExecutorServiceUtils.defineFailureCode;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
@@ -111,7 +111,7 @@ public class ExecuteByteCodeSession {
                                                                    emittedTransactions,
                                                                    firstResult.spentCpuTime));
                             } catch (Throwable e) {
-                                results.add(new SetterMethodResult(failureApiResponse(e),
+                                results.add(new SetterMethodResult(defineFailureCode(e),
                                                                    new Variant(V_STRING, e.getMessage()),
                                                                    emptyMap(),
                                                                    emptyList(),

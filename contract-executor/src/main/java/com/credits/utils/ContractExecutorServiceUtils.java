@@ -1,5 +1,7 @@
 package com.credits.utils;
 
+import com.credits.exception.IncompatibleVersionException;
+import com.credits.general.thrift.ThriftClientPool;
 import com.credits.general.thrift.generated.APIResponse;
 import com.credits.general.thrift.generated.Variant;
 import com.credits.general.util.variant.VariantConverter;
@@ -22,11 +24,10 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
-import static com.credits.general.pojo.ApiResponseCode.FAILURE;
-import static com.credits.general.pojo.ApiResponseCode.SUCCESS;
 import static com.credits.general.util.Utils.getClassType;
 import static com.credits.general.util.Utils.rethrowUnchecked;
 import static com.credits.general.util.variant.VariantConverter.toVariant;
+import static com.credits.thrift.ApiExecResponseCode.*;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -40,7 +41,7 @@ public class ContractExecutorServiceUtils {
 
     private final static Logger logger = LoggerFactory.getLogger(ContractExecutorServiceUtils.class);
 
-    public final static APIResponse SUCCESS_API_RESPONSE = new APIResponse(SUCCESS.code, "success");
+    public final static APIResponse SUCCESS_API_RESPONSE = new APIResponse(SUCCESS.getCode(), "success");
 
     public static MethodData getMethodArgumentsValuesByNameAndParams(
             Class<?> contractClass,
@@ -63,8 +64,14 @@ public class ContractExecutorServiceUtils {
         }
     }
 
-    public static APIResponse failureApiResponse(Throwable e) {
-        return new APIResponse(FAILURE.code, getRootCauseMessage(e));
+    public static APIResponse defineFailureCode(Throwable e) {
+        var error = FAILURE;
+        if (e instanceof IncompatibleVersionException) {
+            error = INCOMPATIBLE_VERSION;
+        } else if (e instanceof ThriftClientPool.ThriftClientException) {
+            error = NODE_UNREACHABLE;
+        }
+        return new APIResponse(error.getCode(), getRootCauseMessage(e));
     }
 
 
@@ -76,7 +83,7 @@ public class ContractExecutorServiceUtils {
     }
 
     public static SmartContractMethodResult createFailureMethodResult(MethodResult mr, NodeApiExecStoreTransactionService nodeApiExecService) {
-        return new SmartContractMethodResult(failureApiResponse(mr.getException()),
+        return new SmartContractMethodResult(defineFailureCode(mr.getException()),
                                              toVariant(String.class.getTypeName(), String.join("\n", getRootCauseStackTrace(mr.getException()))),
                                              mr.getSpentCpuTime(),
                                              nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId()));
@@ -157,6 +164,7 @@ public class ContractExecutorServiceUtils {
     public static void initNonStaticContractFields(InvokeMethodSession session, Object instance) {
         initNonStaticContractFields(session.accessId, session.initiatorAddress, session.usedContracts, instance);
     }
+
     public static Variant[][] variantArrayOf(Object[]... params) {
         return stream(params)
                 .map(p -> stream(p)

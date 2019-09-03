@@ -10,8 +10,8 @@
     <version>none</version>
 
     <modules>
-        <module>sc-api-support</module>
         <module>contract-executor</module>
+        <module>sc-api-support</module>
     </modules>
 
     <properties>
@@ -38,6 +38,7 @@
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
