@@ -25,7 +25,7 @@
         <github.global.server>github</github.global.server>
         <github.owner>creditscom</github.owner>
         <github.project>contract-executor</github.project>
-        <repository.updatePolicy>never</repository.updatePolicy>
+        <repository.updatePolicy>interval:10080</repository.updatePolicy> <!-- 1 week: 10 080 minutes -->
     </properties>
 
     <distributionManagement>
