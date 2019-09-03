@@ -25,6 +25,7 @@
         <github.global.server>github</github.global.server>
         <github.owner>creditscom</github.owner>
         <github.project>contract-executor</github.project>
+        <repository.updatePolicy>never</repository.updatePolicy>
     </properties>
 
     <distributionManagement>
@@ -37,6 +38,7 @@
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -97,7 +99,7 @@
             <url>https://raw.github.com/creditscom/thrift-api-client/mvn-repo/</url>
             <snapshots>
                 <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
+                <updatePolicy>${repository.updatePolicy}</updatePolicy>
             </snapshots>
         </repository>
         <repository>
@@ -105,7 +107,7 @@
             <url>https://raw.github.com/creditscom/contract-executor/mvn-repo/</url>
             <snapshots>
                 <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
+                <updatePolicy>${repository.updatePolicy}</updatePolicy>
             </snapshots>
         </repository>
     </repositories>
