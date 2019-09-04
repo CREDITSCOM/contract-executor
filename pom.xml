@@ -95,6 +95,14 @@
 
     <repositories>
         <repository>
+            <id>sc-api-mvn-repo</id>
+            <url>https://raw.github.com/creditscom/sc-api/mvn-repo/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>${repository.updatePolicy}</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
             <id>thrift-api-client-mvn-repo</id>
             <url>https://raw.github.com/creditscom/thrift-api-client/mvn-repo/</url>
             <snapshots>
