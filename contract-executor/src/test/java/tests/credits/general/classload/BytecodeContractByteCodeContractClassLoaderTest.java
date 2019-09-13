@@ -6,18 +6,22 @@ import com.credits.general.util.compiler.InMemoryCompiler;
 import com.credits.general.util.compiler.model.CompilationUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tests.credits.TestAppProperties;
 import tests.credits.TestUtils;
 
-import static org.junit.Assert.assertNotNull;
+import java.util.Properties;
 
+import static org.junit.Assert.assertNotNull;
 
 public class BytecodeContractByteCodeContractClassLoaderTest {
 
     String sourceCode;
     CompilationUnit compilationUnit;
+    TestAppProperties properties;
 
     @BeforeEach
     public void setUp() throws Exception {
+        properties = new TestAppProperties();
         sourceCode =
             "public class SomeClass {\n" +
                 "\n" +
@@ -25,7 +29,7 @@ public class BytecodeContractByteCodeContractClassLoaderTest {
                 "        System.out.println(\"Hello World!!\"); ;\n" +
                 "    }\n" +
                 "}";
-        compilationUnit = InMemoryCompiler.compileSourceCode(sourceCode).getUnits().get(0);
+        compilationUnit = new InMemoryCompiler(properties.getJdkPath()).compileSourceCode(sourceCode).getUnits().get(0);
     }
 
     @Test
@@ -54,8 +58,7 @@ public class BytecodeContractByteCodeContractClassLoaderTest {
             "}\n" +
             "    }\n" +
             "}";
-
-        compilationUnit = InMemoryCompiler.compileSourceCode(sourceCode).getUnits().get(0);
+        compilationUnit = new InMemoryCompiler(properties.getJdkPath()).compileSourceCode(sourceCode).getUnits().get(0);
         ByteCodeContractClassLoader loader = new ByteCodeContractClassLoader();
         loader.loadClass(compilationUnit.getName(), compilationUnit.getByteCode());
     }

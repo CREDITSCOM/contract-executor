@@ -5,11 +5,13 @@ import com.credits.general.thrift.generated.Variant;
 import com.credits.general.util.compiler.InMemoryCompiler;
 import com.credits.general.util.compiler.model.CompilationUnit;
 import exception.ContractExecutorException;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pojo.SmartContractConstants;
 import pojo.session.DeployContractSession;
 import tests.credits.SmartContactTestData;
+import tests.credits.TestAppProperties;
 import tests.credits.TestContract;
 import tests.credits.service.ContractExecutorTestContext;
 
@@ -20,16 +22,17 @@ import java.util.Set;
 import static com.credits.service.contract.SmartContractAnalyzer.getContractVariables;
 import static org.junit.Assert.*;
 
-
 public class ContractExecutorUtilsTestContext extends ContractExecutorTestContext {
 
     private Object instanceWithVariables;
     private Object instanceWithoutVariables;
     private SmartContactTestData smartContract;
+    private TestAppProperties properties;
 
     @BeforeEach
     protected void setUp() throws Exception {
         super.setUp();
+        properties = new TestAppProperties();
         smartContract = smartContractsRepository.get(TestContract.VariablesTestContract);
         instanceWithVariables = getInstance(smartContract.getSourceCode());
         String sourceCodeWithoutVariables =
@@ -60,7 +63,7 @@ public class ContractExecutorUtilsTestContext extends ContractExecutorTestContex
     }
 
     private Object getInstance(String source) throws Exception {
-        CompilationUnit compilationUnit = InMemoryCompiler.compileSourceCode(source).getUnits().get(0);
+        CompilationUnit compilationUnit = new InMemoryCompiler(properties.getJdkPath()).compileSourceCode(source).getUnits().get(0);
         SmartContractConstants.initSmartContractConstants(Thread.currentThread().getId(),
                                                           new DeployContractSession(0, "123", "123", smartContract.getByteCodeObjectDataList(), 0));
         Class<?> clazz = new ByteCodeContractClassLoader().loadClass(compilationUnit.getName(), compilationUnit.getByteCode());

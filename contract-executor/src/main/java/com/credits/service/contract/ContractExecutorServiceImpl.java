@@ -1,5 +1,6 @@
 package com.credits.service.contract;
 
+import com.credits.ApplicationProperties;
 import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ApiResponseCode;
 import com.credits.general.pojo.ApiResponseData;
@@ -41,13 +42,16 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     private final PermissionsManager permissionManager;
     private final NodeApiExecStoreTransactionService nodeApiExecService;
+    private final ApplicationProperties properties;
 
     @Inject
     public ContractExecutorServiceImpl(NodeApiExecStoreTransactionService nodeApiExecService,
                                        PermissionsManager permissionManager,
-                                       ExecutorService threadPoolExecutor) {
+                                       ExecutorService threadPoolExecutor,
+                                       ApplicationProperties properties) {
         this.permissionManager = permissionManager;
         this.nodeApiExecService = nodeApiExecService;
+        this.properties = properties;
         allVersionsSmartContractClass.forEach(contract -> initStaticContractFields(nodeApiExecService, this, threadPoolExecutor, contract));
         permissionManager.grantAllPermissions(NodeApiExecInteractionServiceImpl.class);
     }
@@ -123,7 +127,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
         requireNonNull(sourceCode, "sourceCode of executor class is null");
         if (sourceCode.isEmpty()) throw new ContractExecutorException("sourceCode of executor class is empty");
 
-        final var compilationPackage = InMemoryCompiler.compileSourceCode(sourceCode);
+        final var compilationPackage = new InMemoryCompiler(properties.jdkPath).compileSourceCode(sourceCode);
         return GeneralConverter.compilationPackageToByteCodeObjectsData(compilationPackage);
     }
 
