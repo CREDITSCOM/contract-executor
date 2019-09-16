@@ -56,7 +56,7 @@ public class CurrentThreadMethodExecutor {
         final var instance = getInstance(invokingContractData);
         final var returnValue = findMethodThenInvoke(instance);
         final var newContractState = serialize(instance);
-        verifyChangesContractState(currentContractAddress, invokingContractData, newContractState);
+        verifyChangesContractState(invokingContractData, newContractState);
         invokingContractData.getContractData().setContractState(newContractState);
         return returnValue;
     }
@@ -93,11 +93,11 @@ public class CurrentThreadMethodExecutor {
         return instance;
     }
 
-    private void verifyChangesContractState(String currentContractAddress, ExternalSmartContract invokingContract, byte[] newContractState) {
+    private void verifyChangesContractState(ExternalSmartContract invokingContract, byte[] newContractState) {
         final var contractStateCanNotBeModify = !invokingContract.getContractData().isStateCanModify();
         final var oldContractState = invokingContract.getContractData().getContractState();
         if (contractStateCanNotBeModify && !Arrays.equals(oldContractState, newContractState)) {
-            throw new ContractExecutorException("smart executor \"" + currentContractAddress + "\" can't be modify");
+            throw new ContractExecutorException("smart contract \"" + invokingContractAddress + "\" can't be modify");
         }
     }
 
