@@ -6,6 +6,7 @@ import com.credits.client.node.thrift.generated.WalletBalanceGetResult;
 import com.credits.general.thrift.generated.Variant;
 import com.credits.general.util.GeneralConverter;
 import com.credits.general.util.compiler.CompilationException;
+import org.hamcrest.Matchers;
 import org.hamcrest.collection.IsMapContaining;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -223,7 +224,8 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         final var result = executeSmartContract(smartContract, deployContractState, 1, "thisMethodThrowsExcetion").executeResults.get(0);
 
         assertThat(result.status.code, is(FAILURE.code));
-        assertThat(result.status.message, containsString("oops some problem"));
+        assertThat(result.status.message, containsString("java.lang.RuntimeException: oops some problem"));
+        assertThat(result.result.getV_string(), is("oops some problem"));
     }
 
     @Test
@@ -233,7 +235,8 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         final var result = deploySmartContract(smartContract).executeResults.get(0);
 
         assertThat(result.status.code, is(FAILURE.code));
-        assertThat(result.status.message, containsString("some problem found here"));
+        assertThat(result.status.message, containsString("java.lang.RuntimeException: some problem found here"));
+        assertThat(result.result.getV_string(), is("some problem found here"));
     }
 
     @Test
@@ -351,7 +354,10 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
         final var errorDescription = getFirstReturnValue(result).getV_string();
 
         assertThat(executionResult.status.code, is(FAILURE.code));
-        assertThat(errorDescription, containsString("Cannot find a method by name and parameters specified."));
+        assertThat(executionResult.status.message,
+                   containsString( "exception.ExternalSmartContractException: NoSuchMethodException: Cannot find a method by name and parameters specified.. "));
+        assertThat(errorDescription,
+                   Matchers.startsWith("NoSuchMethodException: Cannot find a method by name and parameters specified.. Contract address: "));
         assertThat(changedExternalContractState, equalTo(deployExternalContractState));
         assertThat(result.newContractState, equalTo(deployContractState));
     }

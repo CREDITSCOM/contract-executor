@@ -32,7 +32,7 @@ import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.beanutils.MethodUtils.getMatchingAccessibleMethod;
-import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseStackTrace;
 import static org.apache.commons.lang3.reflect.FieldUtils.getAllFieldsList;
 
@@ -71,7 +71,7 @@ public class ContractExecutorServiceUtils {
         } else if (e instanceof ThriftClientPool.ThriftClientException) {
             error = NODE_UNREACHABLE;
         }
-        return new APIResponse(error.getCode(), getRootCauseMessage(e));
+        return new APIResponse(error.getCode(), String.join("\n", getRootCauseStackTrace(e)));
     }
 
 
@@ -83,8 +83,13 @@ public class ContractExecutorServiceUtils {
     }
 
     public static SmartContractMethodResult createFailureMethodResult(MethodResult mr, NodeApiExecStoreTransactionService nodeApiExecService) {
-        return new SmartContractMethodResult(defineFailureCode(mr.getException()),
-                                             toVariant(String.class.getTypeName(), String.join("\n", getRootCauseStackTrace(mr.getException()))),
+        final var exception = mr.getException();
+        final var rootCauseMessage = getRootCause(exception);
+        final var exceptionMessage = rootCauseMessage == null
+                                     ? ""
+                                     : rootCauseMessage.getMessage();
+        return new SmartContractMethodResult(defineFailureCode(exception),
+                                             toVariant(getClassType(exceptionMessage), exceptionMessage),
                                              mr.getSpentCpuTime(),
                                              nodeApiExecService.takeAwayEmittedTransactions(mr.getThreadId()));
     }
