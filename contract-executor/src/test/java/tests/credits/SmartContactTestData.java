@@ -3,6 +3,7 @@ package tests.credits;
 import com.credits.general.classload.ByteCodeContractClassLoader;
 import com.credits.general.pojo.ByteCodeObjectData;
 import com.credits.general.thrift.generated.ByteCodeObject;
+import com.credits.general.util.compiler.InMemoryCompiler;
 import org.apache.commons.lang3.RandomUtils;
 
 import java.nio.ByteBuffer;
@@ -10,7 +11,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.credits.general.util.GeneralConverter.*;
-import static com.credits.general.util.compiler.InMemoryCompiler.compileSourceCode;
 import static com.credits.thrift.utils.ContractExecutorUtils.compileSmartContractByteCode;
 import static com.credits.thrift.utils.ContractExecutorUtils.findRootClass;
 import static java.nio.ByteBuffer.wrap;
@@ -118,6 +118,9 @@ public class SmartContactTestData {
         }
 
         public SmartContactTestData build() {
+
+            TestAppProperties properties = new TestAppProperties();
+
             this.contractAddressBase58 = this.contractAddressBase58 == null
                     ? contractAddressBinary != null
                     ? encodeToBASE58(contractAddressBinary.array())
@@ -130,7 +133,7 @@ public class SmartContactTestData {
                     ? "public class Foo{ public void bar(){}; }"
                     : this.sourceCode;
             this.byteCodeObjectDataList = this.byteCodeObjectDataList == null
-                    ? compilationPackageToByteCodeObjectsData(compileSourceCode(sourceCode))
+                    ? compilationPackageToByteCodeObjectsData(new InMemoryCompiler(properties.getJdkPath()).compileSourceCode(sourceCode))
                     : this.byteCodeObjectDataList;
             this.byteCodeObjectList = this.byteCodeObjectList == null
                     ? byteCodeObjectsDataToByteCodeObjects(this.byteCodeObjectDataList)

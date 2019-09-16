@@ -1,5 +1,6 @@
 package tests.credits;
 
+import com.credits.ApplicationProperties;
 import com.credits.secure.PermissionsManager;
 import com.credits.secure.Sandbox;
 import com.credits.service.contract.ContractExecutorServiceImpl;
@@ -26,8 +27,9 @@ public class TestModule {
 
     @Provides
     @Singleton
-    ContractExecutorService provideContractExecutorService(NodeApiExecStoreTransactionService nodeApi, PermissionsManager permissionsManager) {
-        return spy(new ContractExecutorServiceImpl(nodeApi, permissionsManager, Executors.newCachedThreadPool()));
+    ContractExecutorService provideContractExecutorService(NodeApiExecStoreTransactionService nodeApi, PermissionsManager permissionsManager,
+                                                           ApplicationProperties properties) {
+        return spy(new ContractExecutorServiceImpl(nodeApi, permissionsManager, Executors.newCachedThreadPool(), properties));
     }
 
     @Provides
@@ -67,4 +69,9 @@ public class TestModule {
         return permissionsManager;
     }
 
+    @Singleton
+    @Provides
+    ApplicationProperties providesApplicationProperties() {
+        return new ApplicationProperties();
+    }
 }
