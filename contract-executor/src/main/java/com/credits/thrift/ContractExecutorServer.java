@@ -33,7 +33,7 @@ public class ContractExecutorServer implements Runnable {
 
     private void validateContractExecutorVersion() {
         final var usingJdkVersion = System.getProperty("java.version");
-        final var versionOnlyDecimal = usingJdkVersion.replaceAll("(^\\d*\\.\\d*\\.\\d*)(.*)","$1");
+        final var versionOnlyDecimal = usingJdkVersion.replaceAll("(^\\d*\\.\\d*)(.*)","$1");
         if (!versionOnlyDecimal.equals(JDK_VERSION)) {
             logger.error("Incorrect jdk version. Using version is {} but expected {}", versionOnlyDecimal, JDK_VERSION);
             System.exit(INCORRECT_JDK_VERSION);
