@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
+import static com.credits.utils.Constants.*;
+
 public class ContractExecutorServer implements Runnable {
 
     private final static Logger logger = LoggerFactory.getLogger(ContractExecutorServer.class);
@@ -25,7 +27,17 @@ public class ContractExecutorServer implements Runnable {
     }
 
     public void start() {
+        validateContractExecutorVersion();
         new Thread(this).start();
+    }
+
+    private void validateContractExecutorVersion() {
+        final var usingJdkVersion = System.getProperty("java.version");
+        final var versionOnlyDecimal = usingJdkVersion.replaceAll("(^\\d*\\.\\d*\\.\\d*)(.*)","$1");
+        if (!versionOnlyDecimal.equals(JDK_VERSION)) {
+            logger.error("Incorrect jdk version. Using version is {} but expected {}", versionOnlyDecimal, JDK_VERSION);
+            System.exit(INCORRECT_JDK_VERSION);
+        }
     }
 
     @Override
@@ -44,6 +56,7 @@ public class ContractExecutorServer implements Runnable {
             server.serve();
         } catch (TTransportException e) {
             logger.error("Cannot start Thrift server on port " + properties.executorPort + ". " + e.getMessage(), e);
+            System.exit(CONTRACT_EXECUTOR_SERVER_START_ERROR);
         }
     }
 }
