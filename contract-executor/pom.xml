@@ -100,6 +100,10 @@
                 <configuration>
                     <injectAllReactorProjects>true</injectAllReactorProjects>
                     <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <gitDescribe>
+                        <match>*</match>
+                        <tags>true</tags>
+                    </gitDescribe>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
                     <generateGitPropertiesFilename>
                         ${project.build.outputDirectory}/git.properties
@@ -107,8 +111,8 @@
                     <includeOnlyProperties>
                         <includeOnlyProperty>git.total.commit.count</includeOnlyProperty>
                         <includeOnlyProperty>git.commit.id</includeOnlyProperty>
-                        <includeOnlyProperty>git.closest.tag.commit.count</includeOnlyProperty>
                         <includeOnlyProperty>git.closest.tag.name</includeOnlyProperty>
+                        <includeOnlyProperty>git.closest.tag.commit.count</includeOnlyProperty>
                     </includeOnlyProperties>
                 </configuration>
             </plugin>
