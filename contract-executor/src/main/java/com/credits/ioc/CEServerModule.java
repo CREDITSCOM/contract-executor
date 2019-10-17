@@ -15,14 +15,15 @@ public class CEServerModule {
     @Singleton
     @Provides
     public ContractExecutorServer provideContractExecutorServer(ContractExecutorHandler contractExecutorHandler,
-                                                                ApplicationProperties applicationProperties){
+                                                                ApplicationProperties applicationProperties) {
         return new ContractExecutorServer(contractExecutorHandler, applicationProperties);
     }
 
     @Singleton
     @Provides
-    public ContractExecutorHandler providesContractExecutorHandler(ContractExecutorService contractExecutorService){
-        return new ContractExecutorHandler(contractExecutorService);
+    public ContractExecutorHandler providesContractExecutorHandler(ContractExecutorService contractExecutorService,
+                                                                   ApplicationProperties applicationProperties) {
+        return new ContractExecutorHandler(contractExecutorService, applicationProperties);
     }
 
 }

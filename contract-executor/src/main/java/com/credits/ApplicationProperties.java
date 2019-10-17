@@ -7,7 +7,7 @@ import java.util.Properties;
 
 public class ApplicationProperties {
 
-    public static final short API_VERSION = 2;
+    public static final short API_VERSION = 3;
 
     public int executorPort = 9080;
     public String nodeApiHost = "localhost";
@@ -17,6 +17,7 @@ public class ApplicationProperties {
     public String tag;
     public String commitId;
     public String buildVersion;
+    public int totalCommitCount;
 
     public ApplicationProperties() {
         Locale.setDefault(Locale.US);
@@ -47,6 +48,7 @@ public class ApplicationProperties {
                 tag = (String) properties.get("git.closest.tag.name");
                 buildVersion = (String) properties.get("git.closest.tag.commit.count");
                 commitId = (String) properties.get("git.commit.id");
+                totalCommitCount = Integer.parseInt(properties.getProperty("git.total.commit.count"));
             } catch (IOException e) {
                 throw new RuntimeException("can't load git.properties", e);
             }

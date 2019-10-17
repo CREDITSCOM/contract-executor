@@ -87,7 +87,7 @@
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>get-git-info</id>
@@ -99,13 +99,13 @@
                 </executions>
                 <configuration>
                     <injectAllReactorProjects>true</injectAllReactorProjects>
-                    <generateGitPropertiesFile>false</generateGitPropertiesFile>
                     <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
                     <generateGitPropertiesFilename>
                         ${project.build.outputDirectory}/git.properties
                     </generateGitPropertiesFilename>
                     <includeOnlyProperties>
+                        <includeOnlyProperty>git.total.commit.count</includeOnlyProperty>
                         <includeOnlyProperty>git.commit.id</includeOnlyProperty>
                         <includeOnlyProperty>git.closest.tag.commit.count</includeOnlyProperty>
                         <includeOnlyProperty>git.closest.tag.name</includeOnlyProperty>

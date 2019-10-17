@@ -1,5 +1,6 @@
 package com.credits.thrift;
 
+import com.credits.ApplicationProperties;
 import com.credits.client.executor.thrift.generated.*;
 import com.credits.general.thrift.generated.ByteCodeObject;
 import com.credits.general.thrift.generated.ClassObject;
@@ -36,10 +37,12 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
     private final static Logger logger = LoggerFactory.getLogger(ContractExecutorHandler.class);
 
     private final ContractExecutorService ceService;
+    private final ApplicationProperties applicationProperties;
 
     @Inject
-    public ContractExecutorHandler(ContractExecutorService contractExecutorService) {
+    public ContractExecutorHandler(ContractExecutorService contractExecutorService, ApplicationProperties applicationProperties) {
         ceService = contractExecutorService;
+        this.applicationProperties = applicationProperties;
     }
 
     @Override
