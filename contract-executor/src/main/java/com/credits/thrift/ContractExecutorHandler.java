@@ -208,4 +208,20 @@ public class ContractExecutorHandler implements ContractExecutor.Iface {
         logger.debug("compileBytecode --> {} amountByteCodeObjects={}", result.status, result.byteCodeObjects.size());
         return result;
     }
+
+    @Override
+    public ExecutorBuildVersionResult getExecutorBuildVersion(short version) {
+        ExecutorBuildVersionResult result;
+        try {
+            logger.debug("<-- getExecutorBuildVersion: version={}", version);
+            validateVersion(version);
+            final var commitNumber = applicationProperties.totalCommitCount;
+            final var commitHash = applicationProperties.commitId;
+            result = new ExecutorBuildVersionResult(SUCCESS_API_RESPONSE, commitNumber, commitHash);
+        } catch (Throwable e) {
+            result = new ExecutorBuildVersionResult(defineFailureCode(e), 0, "");
+        }
+        logger.debug("getExecutorBuildVersion --> {} commitNumber={}, commitHash={}", result.status, result.commitNumber, result.commitHash);
+        return result;
+    }
 }
