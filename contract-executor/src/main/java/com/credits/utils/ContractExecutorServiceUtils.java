@@ -87,7 +87,7 @@ public class ContractExecutorServiceUtils {
         final var rootCauseMessage = getRootCause(exception);
         final var exceptionMessage = rootCauseMessage == null
                                      ? ""
-                                     : rootCauseMessage.getMessage();
+                                     : rootCauseMessage.getMessage() == null ? rootCauseMessage.toString() : rootCauseMessage.getMessage();
         return new SmartContractMethodResult(defineFailureCode(exception),
                                              toVariant(getClassType(exceptionMessage), exceptionMessage),
                                              mr.getSpentCpuTime(),
