@@ -82,11 +82,13 @@ public class NodeApiExecInteractionServiceImpl implements NodeApiExecStoreTransa
 
     @Override
     public int getWalletId(long accessId, String addressBase58) {
-        logger.debug(String.format("getWalletId: ---> addressBase58 = %s", addressBase58));
-        WalletIdGetResult result = nodeClient.getWalletId(accessId, decodeFromBASE58(addressBase58));
-        processApiResponse(result.getStatus());
-        logger.debug(String.format("getWalletId: <--- walletId = %s", result.getWalletId()));
-        return result.getWalletId();
+        return callService(() -> {
+            logger.debug(String.format("getWalletId: ---> addressBase58 = %s", addressBase58));
+            WalletIdGetResult result = nodeClient.getWalletId(accessId, decodeFromBASE58(addressBase58));
+            processApiResponse(result.getStatus());
+            logger.debug(String.format("getWalletId: <--- walletId = %s", result.getWalletId()));
+            return result.getWalletId();
+        });
     }
 
     @Override
@@ -99,6 +101,18 @@ public class NodeApiExecInteractionServiceImpl implements NodeApiExecStoreTransa
             BigDecimal balance = amountToBigDecimal(amount);
             logger.info(String.format("getBalance: <--- balance = %s", balance));
             return balance;
+        });
+    }
+
+    @Override
+    public long getBlockchainTimeMills(long accessId) {
+        return callService(() -> {
+            logger.info("getBlockchainTimeMills: --->");
+            final var result = nodeClient.getDateTime(accessId);
+            processApiResponse(result.getStatus());
+            final var timestamp = result.getTimestamp();
+            logger.info("getBlockchainTimeMills: <--- {}", timestamp);
+            return timestamp;
         });
     }
 

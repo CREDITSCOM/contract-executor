@@ -1,5 +1,6 @@
 package com.credits.service.node.apiexec;
 
+import com.credits.client.executor.thrift.generated.apiexec.GetDateTimeResult;
 import com.credits.client.executor.thrift.generated.apiexec.GetSeedResult;
 import com.credits.client.executor.thrift.generated.apiexec.SendTransactionResult;
 import com.credits.client.executor.thrift.generated.apiexec.SmartContractGetResult;
@@ -18,4 +19,6 @@ public interface NodeThriftApiExec {
     WalletIdGetResult getWalletId(long accessId, byte[] address) throws ApiClientException;
 
     WalletBalanceGetResult getBalance(byte[] address) throws ApiClientException;
+
+    GetDateTimeResult getDateTime(long accessId) throws ApiClientException;
 }

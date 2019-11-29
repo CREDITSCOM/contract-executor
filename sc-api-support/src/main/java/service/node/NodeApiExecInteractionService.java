@@ -22,4 +22,6 @@ public interface NodeApiExecInteractionService {
     SmartContractGetResultData getExternalSmartContractByteCode(long accessId, String addressBase58);
 
     BigDecimal getBalance(String addressBase58);
+
+    long getBlockchainTimeMills(long accessId);
 }
