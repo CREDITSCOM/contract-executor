@@ -7,7 +7,7 @@ import java.util.Properties;
 
 public class ApplicationProperties {
 
-    public static final short API_VERSION = 3;
+    public static final short API_VERSION = 4;
 
     public int executorPort = 9080;
     public String nodeApiHost = "localhost";
