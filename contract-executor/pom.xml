@@ -169,7 +169,7 @@
         <dependency>
             <groupId>com.credits.sc-api</groupId>
             <artifactId>sc-api-support</artifactId>
-            <version>0.8.3</version>
+            <version>LATEST</version>
             <scope>provided</scope>
         </dependency>
 
@@ -202,12 +202,6 @@
             <artifactId>junit-jupiter-params</artifactId>
             <version>${junit-platform.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.credits.sc-api</groupId>
-            <artifactId>sc-api-support</artifactId>
-            <version>0.8.4</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
