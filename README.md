@@ -84,6 +84,73 @@ Detailed steps are:
 
 <img src="https://github.com/CREDITSCOM/contract-executor/blob/master/.github/readme-images/77.PNG" align="center">
 
+## Build
+### Windows
+```shell
+git clone https://github.com/CREDITSCOM/thrift-api-client.git
+cd thrift-api-client
+git checkout dev
+call mvn clean install
+cd..
+
+git clone https://github.com/CREDITSCOM/smart-contract-api.git
+cd smart-contract-api
+git checkout dev
+call mvn clean install
+cd..
+
+git clone https://github.com/CREDITSCOM/contract-executor.git
+cd contract-executor
+git checkout dev
+cd sc-api-support
+call mvn clean install
+cd..
+cd contract-executor
+call mvn clean install
+cd..
+cd..
+
+rem Warning!!!
+rem get these files with the same suffix in the target folders
+rem example
+rem sc-api-support-v0.8.4-b28.jar
+rem contract-executor-v0.8.4-b28.jar 
+
+```
+
+### Ubuntu 18.04
+```shell
+git clone https://github.com/CREDITSCOM/thrift-api-client.git
+cd thrift-api-client
+git checkout dev
+mvn clean install
+cd ..
+
+git clone https://github.com/CREDITSCOM/smart-contract-api.git
+cd smart-contract-api
+git checkout dev
+mvn clean install
+cd ..
+
+git clone https://github.com/CREDITSCOM/contract-executor.git
+cd contract-executor
+git checkout dev
+cd sc-api-support
+mvn clean install
+cd ..
+cd contract-executor
+mvn clean install
+cd ..
+cd ..
+
+# Warning!!!
+# get these files with the same suffix in the target folders
+# example
+# sc-api-support-v0.8.4-b28.jar
+# contract-executor-v0.8.4-b28.jar
+
+```
+
 <h3>Resources</h3>
 
 <a href="https://credits.com//">CREDITS Website</a>
