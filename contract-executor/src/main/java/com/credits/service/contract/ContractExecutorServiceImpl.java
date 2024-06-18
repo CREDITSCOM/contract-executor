@@ -161,9 +161,8 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     private List<Class<?>> compileClassesAndDropPermissions(List<ByteCodeObjectData> byteCodeObjectList, ByteCodeContractClassLoader classLoader)
     throws ContractExecutorException {
-        return compileSmartContractByteCode(byteCodeObjectList, classLoader).stream()
-                .peek(permissionManager::dropSmartContractRights)
-                .collect(toList());
+        List<Class<?>> res = compileSmartContractByteCode(byteCodeObjectList, classLoader).stream()
+        return res;
     }
 
 

@@ -57,6 +57,7 @@
                             <version>2.22.1</version>
                         </path>
                     </annotationProcessorPaths>
+                    <showDeprecation>false</showDeprecation>
                 </configuration>
             </plugin>
             <plugin>
