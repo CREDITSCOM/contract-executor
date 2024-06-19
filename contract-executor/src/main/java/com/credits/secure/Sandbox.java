@@ -50,7 +50,7 @@ public final class Sandbox {
 
     static {
         // Install our custom security manager.
-        System.out.println("Installing our custom security manager");
+        //System.out.println("Installing our custom security manager");
         if (System.getSecurityManager() != null) {
             throw new ExceptionInInitializerError("There's already a security manager set");
         }

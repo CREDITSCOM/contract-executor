@@ -29,8 +29,8 @@ public class ContractExecutorUtils {
         
         List<Class<?>> compiledClasses = new ArrayList<>(smartContractByteCodeData.size());
         for (ByteCodeObjectData compilationUnit : smartContractByteCodeData) {
-//            Permissions permissions = new Permissions();
-//            Sandbox.confine(compilationUnit.getClass(), permissions);
+            Permissions permissions = new Permissions();
+            Sandbox.confine(compilationUnit.getClass(), permissions);
             compiledClasses.add(byteCodeContractClassLoader.loadClass(compilationUnit.getName(), compilationUnit.getByteCode()));
         }
         return compiledClasses;

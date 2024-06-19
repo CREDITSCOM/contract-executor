@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+
 import static com.credits.general.serialize.Serializer.deserialize;
 import static com.credits.general.serialize.Serializer.serialize;
 import static com.credits.service.BackwardCompatibilityService.allVersionsSmartContractClass;
@@ -59,6 +60,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     @Override
     public ReturnValue deploySmartContract(DeployContractSession session) throws ContractExecutorException {
         final var contractClass = findRootClass(compileClassesAndDropPermissions(session.byteCodeObjectDataList, getSmartContractClassLoader()));
+        permissionManager.dropSmartContractRights(contractClass);
         final var methodResult = new Deployer(session, contractClass).deploy();
         final var newContractState = methodResult.getInvokedObject() != null
                                      ? serialize(methodResult.getInvokedObject())
@@ -83,16 +85,18 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
 
     private ReturnValue executeContractMethod(InvokeMethodSession session, Object contractInstance) {
         final var executor = new LimitTimeThreadMethodExecutor(session, contractInstance);
+        permissionManager.dropSmartContractRights(contractInstance.getClass());
         final var methodResults = executor.executeIntoLimitTimeThread();
-        session.usedContracts.values().forEach(contract -> contract.getContractData().setContractState(serialize(contract.getInstance())));
 
-        return new ReturnValue(session.usedContracts.get(session.contractAddress).getContractData().getContractState(),
+        session.usedContracts.values().forEach(contract -> contract.getContractData().setContractState(serialize(contract.getInstance())));
+        ReturnValue res = new ReturnValue(session.usedContracts.get(session.contractAddress).getContractData().getContractState(),
                                methodResults.stream()
                                        .map(mr -> mr.getException() == null
                                                   ? createSuccessMethodResult(mr, nodeApiExecService)
                                                   : createFailureMethodResult(mr, nodeApiExecService))
                                        .collect(toList()),
                                session.usedContracts);
+        return res;
     }
 
     @Override
@@ -126,9 +130,11 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     public List<ByteCodeObjectData> compileContractClass(String sourceCode) throws ContractExecutorException, CompilationException {
         requireNonNull(sourceCode, "sourceCode of executor class is null");
         if (sourceCode.isEmpty()) throw new ContractExecutorException("sourceCode of executor class is empty");
-
+        
         final var compilationPackage = new InMemoryCompiler(properties.jdkPath).compileSourceCode(sourceCode);
-        return GeneralConverter.compilationPackageToByteCodeObjectsData(compilationPackage);
+        permissionManager.dropSmartContractRights(compilationPackage.getClass());
+        List<ByteCodeObjectData> res = GeneralConverter.compilationPackageToByteCodeObjectsData(compilationPackage);
+        return res;
     }
 
     @Override
@@ -162,6 +168,7 @@ public class ContractExecutorServiceImpl implements ContractExecutorService {
     private List<Class<?>> compileClassesAndDropPermissions(List<ByteCodeObjectData> byteCodeObjectList, ByteCodeContractClassLoader classLoader)
     throws ContractExecutorException {
         List<Class<?>> res = compileSmartContractByteCode(byteCodeObjectList, classLoader).stream()
+                .collect(toList());
         return res;
     }
 
