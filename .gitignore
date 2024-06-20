@@ -13,3 +13,6 @@ target
 dependency-reduced-pom.xml
 log/
 /contract-executor/buildNumber.properties
+
+### NetBeans configs
+nbactions.xml
