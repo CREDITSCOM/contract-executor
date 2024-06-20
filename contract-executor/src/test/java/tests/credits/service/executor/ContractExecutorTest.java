@@ -201,7 +201,7 @@ public class ContractExecutorTest extends ContractExecutorTestContext {
     void waitCorrectCompleteOfSmartContract() {
         final var executionResult =
                 executeSmartContract(smartContract, deployContractState, 10, "interruptInfiniteLoopWithDelay").executeResults.get(0);
-
+        System.out.println("Execution result: " + executionResult.toString());
         assertThat(executionResult.status, is(SUCCESS_API_RESPONSE));
         assertThat(executionResult.result.getV_string(), is("infinite loop interrupted correctly"));
     }

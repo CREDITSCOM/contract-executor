@@ -50,6 +50,7 @@ public final class Sandbox {
 
     static {
         // Install our custom security manager.
+        //System.out.println("Installing our custom security manager");
         if (System.getSecurityManager() != null) {
             throw new ExceptionInInitializerError("There's already a security manager set");
         }
@@ -58,6 +59,7 @@ public final class Sandbox {
 
             @Override
             public void checkPermission(Permission perm) {
+                //System.out.println("Check permission" + perm.toString());
                 assert perm != null;
                 for (Class<?> clasS : this.getClassContext()) {
                     // Check if an ACC was set for the class.
@@ -81,6 +83,7 @@ public final class Sandbox {
      * @throws SecurityException Permissions are already confined for the {@code clasS}
      */
     public static void confine(Class<?> clasS, AccessControlContext accessControlContext) {
+        //System.out.println("Sandbox confine 1:" + clasS.getName());
         if (!Sandbox.CHECKED_CLASSES.containsKey(clasS)) {
             Sandbox.CHECKED_CLASSES.put(clasS, accessControlContext);
         }
@@ -93,6 +96,7 @@ public final class Sandbox {
      * @throws SecurityException Permissions are already confined for the {@code clasS}
      */
     public static void confine(Class<?> clasS, ProtectionDomain protectionDomain) {
+        //System.out.println("Sandbox confine 2:" + clasS.getName());
         Sandbox.confine(clasS, new AccessControlContext(new ProtectionDomain[] {protectionDomain}));
     }
 
@@ -103,6 +107,7 @@ public final class Sandbox {
      * @throws SecurityException Permissions are already confined for the {@code clasS}
      */
     public static void confine(Class<?> clasS, Permissions permissions) {
+        //System.out.println("Sandbox confine 3:" + clasS.getName());
         Sandbox.confine(clasS, new ProtectionDomain(clasS.getProtectionDomain().getCodeSource(), permissions));
     }
 }

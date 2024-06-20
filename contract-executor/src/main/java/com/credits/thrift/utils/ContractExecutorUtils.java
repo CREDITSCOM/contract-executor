@@ -7,8 +7,9 @@ import exception.ContractExecutorException;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.security.Permissions;
 import static com.credits.ApplicationProperties.API_VERSION;
+import com.credits.secure.Sandbox;
 
 public class ContractExecutorUtils {
 
@@ -25,9 +26,11 @@ public class ContractExecutorUtils {
 
     public static List<Class<?>> compileSmartContractByteCode(List<ByteCodeObjectData> smartContractByteCodeData,
                                                               ByteCodeContractClassLoader byteCodeContractClassLoader) {
-
+        
         List<Class<?>> compiledClasses = new ArrayList<>(smartContractByteCodeData.size());
         for (ByteCodeObjectData compilationUnit : smartContractByteCodeData) {
+            Permissions permissions = new Permissions();
+            Sandbox.confine(compilationUnit.getClass(), permissions);
             compiledClasses.add(byteCodeContractClassLoader.loadClass(compilationUnit.getName(), compilationUnit.getByteCode()));
         }
         return compiledClasses;
