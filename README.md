@@ -62,7 +62,8 @@ Detailed steps are:
 
 5. Install [Git](https://git-scm.com/download/win) and clone the thrift-api-client repository from GitHub: [https://github.com/CREDITSCOM/thrift-api-client](https://github.com/CREDITSCOM/thrift-api-client)
 6. Change to the directory by using command:_ cd_
-7. Once on the directory write the following command in the prompt to build compilation from sources files: 
+7. Change the working brach to dev: git checkout dev
+8. Once on the directory write the following command in the prompt to build compilation from sources files: 
 ```mvn clean install```
 
 
@@ -70,15 +71,17 @@ Detailed steps are:
 <img src=".github/readme-images/5.PNG" align="center">
 
 
-8. Now, repeat the process for smart-contract-api repository. Clone it from the repository: [https://github.com/CREDITSCOM/smart-contract-api](https://github.com/CREDITSCOM/smart-contract-api)
-9. Change to the directory by using command:_ cd. _Then build compilation from sources by using the command: 
+9. Now, repeat the process for smart-contract-api repository. Clone it from the repository: [https://github.com/CREDITSCOM/smart-contract-api](https://github.com/CREDITSCOM/smart-contract-api)
+10. Change the working brach to dev: git checkout dev
+11. Change to the directory by using command:_ cd. _Then build compilation from sources by using the command: 
 ```mvn clean install```
 
 <img src=".github/readme-images/6.PNG" align="center">
 
 
-10. Finally clone contract-executor repository from: [https://github.com/CREDITSCOM/contract-executor](https://github.com/CREDITSCOM/contract-executor)
-11. Change to the contract-executor directory and build it by using:```mvn clean install```. If all the steps were performed properly and secuently, errors won’t be.
+12. Finally clone contract-executor repository from: [https://github.com/CREDITSCOM/contract-executor](https://github.com/CREDITSCOM/contract-executor)
+13. Change the working brach to dev: git checkout dev
+14. Change to the contract-executor directory and build it by using:```mvn clean install```. If all the steps were performed properly and secuently, errors won’t be.
 
     
 
@@ -113,8 +116,12 @@ cd..
 rem Warning!!!
 rem get these files with the same suffix in the target folders
 rem example
-rem sc-api-support-v0.8.4-b28.jar
-rem contract-executor-v0.8.4-b28.jar 
+rem sc-api-support-v0.8.4-b35.jar
+rem contract-executor-v0.8.4-b35.jar 
+rem rename them to sc-api-support.jar and contract-executor.jar -> node directory
+rem DO NOT FORGET to change next lines in [api] department of node config.ini file to:
+rem executor_commit_min=1518
+rem executor_commit_max=1518
 
 ```
 
@@ -146,9 +153,12 @@ cd ..
 # Warning!!!
 # get these files with the same suffix in the target folders
 # example
-# sc-api-support-v0.8.4-b28.jar
-# contract-executor-v0.8.4-b28.jar
-
+# sc-api-support-v0.8.4-b35.jar
+# contract-executor-v0.8.4-b35.jar 
+# rename them to sc-api-support.jar and contract-executor.jar -> node directory
+# DO NOT FORGET to change next lines in [api] department of node config.ini file to:
+# executor_commit_min=1518
+# executor_commit_max=1518
 ```
 
 <h3>Resources</h3>
